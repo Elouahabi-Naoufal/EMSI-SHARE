@@ -80,8 +80,8 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
     }
   };
 
-  const refreshPlatformSettings = async () => {
-    setIsLoading(true);
+  const refreshPlatformSettings = async (showLoading = true) => {
+    if (showLoading) setIsLoading(true);
     try {
       // Always fetch public branding (works for everyone including unauthenticated)
       const publicSettings = await platformAPI.getPublicSettings();
@@ -129,9 +129,11 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
   };
 
   useEffect(() => {
-    refreshPlatformSettings();
+    // First load: show loading. Role changes (after auth resolves): silent refresh
+    const isFirstLoad = !platformName || platformName === defaultPlatformContext.platformName;
+    refreshPlatformSettings(isFirstLoad);
     const intervalId = setInterval(() => {
-      refreshPlatformSettings();
+      refreshPlatformSettings(false);
     }, 5 * 60 * 1000);
     return () => clearInterval(intervalId);
   }, [user?.role]);
