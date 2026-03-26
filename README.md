@@ -1,291 +1,408 @@
-# EMSI Share Learn Platform
+<div align="center">
 
-A comprehensive educational platform designed for collaborative learning, resource sharing, and academic management. Built with React (TypeScript) frontend and Django REST API backend.
+<img src="public/favicon.ico" alt="Logo" width="80" height="80" />
 
-## 🎯 Platform Overview
+# EMSI Share Learn
 
-EMSI Share Learn is an all-in-one educational platform that facilitates learning through multiple interactive features including resource sharing, discussion forums, event management, quizzes, and collaborative rooms.
+### A full-stack collaborative learning platform for schools & universities
 
-## 👥 User Types & Roles
+[![React](https://img.shields.io/badge/React-18.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.2-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Django](https://img.shields.io/badge/Django-5.0-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Latest-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Vite](https://img.shields.io/badge/Vite-6.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
-### 1. **Student**
-- Default role for new registrations
-- Can join rooms, participate in forums, take quizzes
-- Access to resources and events
-- Can create forum topics and posts
-- Limited administrative privileges
+[![GitHub stars](https://img.shields.io/github/stars/Elouahabi-Naoufal/EMSI-SHARE?style=for-the-badge&logo=github&color=yellow)](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Elouahabi-Naoufal/EMSI-SHARE?style=for-the-badge&logo=github&color=blue)](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/Elouahabi-Naoufal/EMSI-SHARE?style=for-the-badge&logo=github&color=red)](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/issues)
+[![GitHub commits](https://img.shields.io/github/commit-activity/t/Elouahabi-Naoufal/EMSI-SHARE?style=for-the-badge&logo=github&color=green&label=commits)](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/commits/main)
+[![Last Commit](https://img.shields.io/github/last-commit/Elouahabi-Naoufal/EMSI-SHARE?style=for-the-badge&logo=github&color=purple)](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/commits/main)
+[![License](https://img.shields.io/badge/License-MIT-orange?style=for-the-badge)](LICENSE)
 
-### 2. **Teacher**
-- Can create and manage rooms
-- Create and manage quizzes with questions
-- Upload and manage resources
-- Create events and manage attendees
-- Moderate forum discussions
-- Access to analytics and student progress
+<br/>
 
-### 3. **Admin**
-- Full platform access and control
-- User management capabilities
-- Platform settings configuration
-- Content moderation and approval
-- System analytics and reporting
-- Can manage all resources, events, and rooms
+[**Live Demo**](https://github.com/Elouahabi-Naoufal/EMSI-SHARE) · [**Report Bug**](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/issues) · [**Request Feature**](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/issues) · [**Roadmap**](ROADMAP.md)
 
-### 4. **Administration**
-- Similar to admin but focused on institutional management
-- User verification and approval
-- Platform-wide announcements
-- Policy enforcement and compliance
+</div>
 
-## 🏗️ System Architecture
+---
 
-### Frontend (React + TypeScript)
-- **Framework**: React 18 with TypeScript
-- **Routing**: React Router DOM
-- **State Management**: React Context API + TanStack Query
-- **UI Components**: Radix UI + Custom Components
-- **Styling**: Tailwind CSS
-- **Build Tool**: Vite
+## 📋 Table of Contents
 
-### Backend (Django REST Framework)
-- **Framework**: Django 5.0 with Django REST Framework
-- **Authentication**: JWT with SimpleJWT
-- **Database**: PostgreSQL (configurable)
-- **File Storage**: Binary field storage in database
-- **API**: RESTful API with comprehensive endpoints
+- [About](#-about)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Architecture](#-architecture)
+- [Getting Started](#-getting-started)
+- [User Roles](#-user-roles)
+- [API Overview](#-api-overview)
+- [Project Structure](#-project-structure)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-## 📱 Pages & Features
+---
 
-### 🏠 **Landing Page** (`/landing`)
-- Platform introduction and overview
-- Feature highlights
-- Registration and login access
-- Public information about the platform
+## 🎯 About
 
-### 🔐 **Authentication Pages**
-- **Login** (`/login`): User authentication with email/password
-- **Register** (`/register`): New user registration with role selection
+**EMSI Share Learn** is a production-ready Learning Management System (LMS) built for schools and universities. It brings together resource sharing, quizzes, discussion forums, event management, and collaborative rooms into a single unified platform — all with role-based access control and a clean, modern UI.
 
-### 📊 **Dashboard** (`/`)
-- Personalized user dashboard
-- Quick access to recent activities
-- Statistics and progress overview
-- Notifications summary
-- Role-based content display
+> Built as a final-year project (PFA) at EMSI — École Marocaine des Sciences de l'Ingénieur.
 
-### 📚 **Resources** (`/resources`)
-- **File Management**: Upload, download, and organize educational materials
-- **Categories**: Organized by subject and type (PDF, Video, Audio, Documents, etc.)
-- **Search & Filter**: Advanced filtering by category, type, and room
-- **Approval System**: Admin/teacher approval for resource uploads
-- **File Types Supported**: PDF, DOC, PPT, Excel, Images, Videos, Audio, ZIP archives
-- **Binary Storage**: Files stored directly in database as binary data
+---
 
-### 🧠 **Quizzes** (`/quiz`, `/quiz/:quizId`)
-- **Quiz Creation**: Teachers can create multiple-choice and true/false questions
-- **Attempt Management**: Track student attempts and scores
-- **Time Limits**: Configurable time constraints
-- **Scoring System**: Automatic grading with passing thresholds
-- **Progress Tracking**: Detailed analytics for teachers
-- **Multiple Attempts**: Configurable retry limits
+## ✨ Features
 
-### 💬 **Forum** (`/forum`, `/forum/:topicId`)
-- **Discussion Categories**: Organized topic categories with color coding
-- **Topic Management**: Create, edit, and manage discussion topics
-- **Threaded Replies**: Nested comment system
-- **Voting System**: Upvote/downvote posts
-- **Solution Marking**: Mark posts as solutions to questions
-- **File Attachments**: Attach files to forum posts
-- **Moderation Tools**: Admin controls for content management
+<table>
+<tr>
+<td>
 
-### 📅 **Events** (`/events`, `/events/:eventId`, `/events/:eventId/edit`)
-- **Event Types**: Lectures, workshops, exams, meetings, conferences, etc.
-- **Scheduling**: Date/time management with timezone support
-- **Location Management**: Physical and online event support
-- **Attendee Management**: RSVP system with status tracking
-- **Collaboration**: Multi-user event management
-- **Media Support**: Image and video attachments
-- **Room Integration**: Link events to specific rooms
+**📚 Resources**
+- Upload & download educational files
+- Binary storage directly in PostgreSQL
+- PDF, Video, Audio, Code, Documents
+- Approval workflow for student uploads
+- Category & search filtering
 
-### 🏫 **Rooms** (`/rooms`, `/student-rooms`, `/rooms/:roomId`)
-- **Room Creation**: Teachers create subject-specific rooms
-- **Participant Management**: Invite and manage students
-- **Role Assignment**: Student, moderator, assistant roles
-- **Private/Public**: Configurable room visibility
-- **Resource Integration**: Room-specific resource collections
-- **Event Integration**: Room-specific event calendars
-- **Forum Integration**: Room-specific discussion areas
+</td>
+<td>
 
-### 👤 **Profile Management** (`/profile`)
-- **Personal Information**: Name, email, bio, contact details
-- **Profile Picture**: Upload and manage avatar
-- **Academic Details**: Institution, department, graduation year
-- **Skills & Interests**: Customizable tags and categories
-- **Social Links**: External profile connections
-- **Privacy Settings**: Control information visibility
+**🧠 Quizzes**
+- Multiple choice & true/false
+- Time limits & attempt tracking
+- Auto-grading with score history
+- Teacher analytics per student
+- Active/inactive toggle
 
-### ⚙️ **Settings** (`/settings`)
-- **Notification Preferences**: Email, push, quiz reminders
-- **Theme Selection**: Light, dark, auto themes
-- **Privacy Controls**: Public, friends, private visibility
-- **Language Preferences**: Internationalization support
-- **Account Security**: Password management
+</td>
+</tr>
+<tr>
+<td>
 
-### 🔔 **Notifications** (`/notifications`)
-- **Real-time Updates**: Forum replies, event reminders, quiz deadlines
-- **Categorized Alerts**: System, academic, social notifications
-- **Read/Unread Status**: Notification management
-- **Preference Controls**: Granular notification settings
+**💬 Forum**
+- Threaded discussions per room
+- Upvote / downvote posts
+- Mark solutions, subscribe to topics
+- File attachments on posts
+- Like system & view tracking
 
-### 👥 **User Management** (`/users`) - Admin Only
-- **User Directory**: Complete user listing with search
-- **Role Management**: Assign and modify user roles
-- **Account Status**: Activate, deactivate, verify users
-- **Bulk Operations**: Mass user management tools
+</td>
+<td>
 
-### 📈 **Analytics** (`/analytics`) - Admin/Teacher
-- **User Engagement**: Activity tracking and statistics
-- **Content Performance**: Resource usage, quiz scores
-- **Platform Metrics**: System-wide analytics
-- **Custom Reports**: Exportable data insights
+**📅 Events**
+- 12 event types (lecture, exam, workshop…)
+- Online & physical events
+- RSVP attendance tracking
+- Collaborator management
+- Image & video media support
 
-### 📖 **Documentation** (`/documentation`)
-- **User Guides**: Comprehensive platform documentation
-- **API Documentation**: Developer resources
-- **Feature Tutorials**: Step-by-step guides
-- **FAQ Section**: Common questions and answers
+</td>
+</tr>
+<tr>
+<td>
 
-## 🔧 Technical Features
+**🏫 Rooms**
+- Teacher-created subject rooms
+- Student join via room code
+- Moderator & assistant roles
+- Room-scoped resources, quizzes, events & forum
+- Private / public visibility
 
-### Security & Authentication
-- JWT-based authentication with refresh tokens
-- Role-based access control (RBAC)
-- CORS configuration for cross-origin requests
-- Input validation and sanitization
-- File upload security measures
+</td>
+<td>
 
-### File Management
-- Binary file storage in database
-- Chunked upload support for large files
-- MIME type validation
-- File size limitations
-- Automatic file type detection
+**⚙️ Admin Panel**
+- Platform name & logo customization
+- User management (create, edit, delete)
+- Resource approval queue
+- Database & SSH server management
+- Real-time database statistics
 
-### Real-time Features
-- Notification system
-- Activity tracking
-- Live updates for forum discussions
-- Real-time collaboration features
+</td>
+</tr>
+</table>
 
-### Performance Optimization
-- Lazy loading for components
-- Query optimization with TanStack Query
-- Image optimization and caching
-- Database indexing for performance
+---
 
-## 🚀 Installation & Setup
+## 🛠 Tech Stack
+
+### Frontend
+| Technology | Version | Purpose |
+|---|---|---|
+| React | 18.2 | UI framework |
+| TypeScript | 5.2 | Type safety |
+| Vite | 6.3 | Build tool |
+| Tailwind CSS | 3.4 | Styling |
+| Radix UI | Latest | Accessible components |
+| TanStack Query | 5.28 | Server state management |
+| React Router | 6.22 | Client-side routing |
+| Recharts | 2.12 | Analytics charts |
+| Lucide React | 0.358 | Icons |
+| Sonner | 1.4 | Toast notifications |
+
+### Backend
+| Technology | Version | Purpose |
+|---|---|---|
+| Django | 5.0 | Web framework |
+| Django REST Framework | 3.14 | REST API |
+| SimpleJWT | 5.3 | JWT authentication |
+| django-cors-headers | 4.3 | CORS handling |
+| PostgreSQL | Latest | Primary database |
+| psycopg2 | Latest | PostgreSQL adapter |
+| Paramiko | Latest | SSH management |
+
+---
+
+## 🏗 Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     React Frontend                       │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────┐  │
+│  │   Pages  │  │Components│  │ Contexts │  │Services│  │
+│  │ Dashboard│  │  Layout  │  │   Auth   │  │  API   │  │
+│  │ Resources│  │  Forum   │  │ Platform │  │        │  │
+│  │  Quizzes │  │  Events  │  │  Theme   │  │        │  │
+│  │  Forums  │  │  Rooms   │  └──────────┘  └────────┘  │
+│  └──────────┘  └──────────┘                             │
+└────────────────────────┬────────────────────────────────┘
+                         │ HTTP / REST (JWT Bearer)
+┌────────────────────────▼────────────────────────────────┐
+│                   Django REST API                        │
+│  ┌────────┐ ┌─────────┐ ┌────────┐ ┌──────────────────┐ │
+│  │ users  │ │resources│ │quizzes │ │     forums       │ │
+│  ├────────┤ ├─────────┤ ├────────┤ ├──────────────────┤ │
+│  │ rooms  │ │ events  │ │notifs  │ │platform_settings │ │
+│  └────────┘ └─────────┘ └────────┘ └──────────────────┘ │
+└────────────────────────┬────────────────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────────┐
+│                    PostgreSQL                            │
+│         (Binary file storage — no filesystem)           │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm
-- Python 3.8+
-- PostgreSQL (recommended) or SQLite
 
-### Frontend Setup
+- **Node.js** 18+ and npm
+- **Python** 3.10+
+- **PostgreSQL** 14+
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Elouahabi-Naoufal/EMSI-SHARE.git
+cd EMSI-SHARE
+```
+
+### 2. Frontend Setup
+
 ```bash
 # Install dependencies
 npm install
 
+# Create environment file
+cp .env.development .env.local
+# Set VITE_API_URL=http://127.0.0.1:8000/api
+
 # Start development server
 npm run dev
-
-# Build for production
-npm run build
 ```
 
-### Backend Setup
+### 3. Backend Setup
+
 ```bash
-# Navigate to backend directory
 cd backend
 
-# Create virtual environment
+# Create and activate virtual environment
 python -m venv env
-source env/bin/activate  # On Windows: env\Scripts\activate
+source env/bin/activate        # Linux/macOS
+# env\Scripts\activate         # Windows
 
 # Install dependencies
-pip install -r requirements.txt
+pip install django djangorestframework djangorestframework-simplejwt django-cors-headers psycopg2-binary Pillow paramiko django-filter
 
-# Configure database settings in settings.py
+# Configure database
+# Edit backend/db_config.json:
+# { "db_name": "your_db", "db_user": "postgres", "db_password": "your_password" }
+
 # Run migrations
 python manage.py migrate
 
-# Create superuser
+# Create superuser (admin)
 python manage.py createsuperuser
 
-# Start development server
+# Start server
 python manage.py runserver
 ```
 
-### Environment Configuration
-Create `.env` files for both frontend and backend with necessary configuration variables.
+### 4. Open the app
+
+```
+Frontend → http://localhost:5173
+Backend  → http://localhost:8000
+Admin    → http://localhost:8000/admin
+```
+
+---
+
+## 👥 User Roles
+
+| Role | Description | Key Permissions |
+|---|---|---|
+| 🎓 **Student** | Default registration role | Join rooms, take quizzes, post in forums, upload resources (pending approval) |
+| 👨‍🏫 **Teacher** | Educator role | Create rooms & quizzes, manage resources, create events, view student analytics |
+| 🔧 **Admin** | Platform administrator | Full access, approve resources, manage users, platform settings |
+| 🏛 **Administration** | Institutional management | User CRUD, verification, platform-wide control |
+
+---
+
+## 📡 API Overview
+
+Base URL: `http://localhost:8000/api`
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/token/` | POST | Obtain JWT token pair |
+| `/token/refresh/` | POST | Refresh access token |
+| `/auth/register/` | POST | Register new user |
+| `/auth/me/` | GET/PATCH | Current user profile |
+| `/rooms/` | GET/POST | List / create rooms |
+| `/rooms/{id}/join/` | POST | Join a room |
+| `/resources/` | GET/POST | List / upload resources |
+| `/resources/{id}/approve/` | POST | Approve resource (admin) |
+| `/quizzes/` | GET/POST | List / create quizzes |
+| `/quizzes/{id}/submit/` | POST | Submit quiz answers |
+| `/forums/topics/` | GET/POST | List / create topics |
+| `/forums/posts/` | GET/POST | List / create posts |
+| `/events/` | GET/POST | List / create events |
+| `/notifications/` | GET | Get notifications |
+| `/platform/public/` | GET | Public branding (no auth) |
+| `/platform/settings/` | GET/POST | Full settings (admin only) |
+
+> Full API documentation available in the platform's `/documentation` page.
+
+---
 
 ## 📁 Project Structure
 
 ```
 emsi-share-learn/
+│
 ├── src/                          # React frontend
-│   ├── components/               # Reusable UI components
-│   │   ├── admin/               # Admin-specific components
-│   │   ├── dashboard/           # Dashboard widgets
-│   │   ├── events/              # Event management
-│   │   ├── forum/               # Forum components
-│   │   ├── resources/           # Resource management
-│   │   ├── rooms/               # Room components
-│   │   └── ui/                  # Base UI components
-│   ├── contexts/                # React contexts
-│   ├── hooks/                   # Custom React hooks
-│   ├── pages/                   # Page components
-│   ├── services/                # API services
-│   └── types/                   # TypeScript definitions
-├── backend/                     # Django backend
-│   ├── users/                   # User management
-│   ├── resources/               # Resource management
-│   ├── forums/                  # Forum system
-│   ├── events/                  # Event management
-│   ├── rooms/                   # Room system
-│   ├── quizzes/                 # Quiz system
-│   ├── notifications/           # Notification system
-│   └── platform_settings/       # Platform configuration
-└── public/                      # Static assets
+│   ├── components/
+│   │   ├── admin/                # Admin-specific components
+│   │   ├── dashboard/            # Role-based dashboard widgets
+│   │   ├── events/               # Event management UI
+│   │   ├── forum/                # Forum components
+│   │   ├── layout/               # Header, Sidebar, MainLayout
+│   │   ├── resources/            # Resource upload/view/preview
+│   │   ├── rooms/                # Room management
+│   │   └── ui/                   # Base Radix UI components
+│   ├── contexts/
+│   │   ├── AuthContext.tsx        # JWT auth, user state
+│   │   ├── PlatformContext.tsx    # Platform settings & branding
+│   │   └── ThemeContext.tsx       # Light/dark theme
+│   ├── pages/                    # Route-level page components
+│   ├── services/
+│   │   └── api.ts                # All API calls (typed)
+│   └── types/                    # TypeScript type definitions
+│
+├── backend/
+│   ├── users/                    # Custom user model, auth views
+│   ├── rooms/                    # Room & participant management
+│   ├── resources/                # File upload, approval workflow
+│   ├── quizzes/                  # Quiz engine, attempts, scoring
+│   ├── forums/                   # Topics, posts, votes, subscriptions
+│   ├── events/                   # Events, attendees, collaborators
+│   ├── notifications/            # Notification system
+│   ├── platform_settings/        # Admin settings, DB stats, SSH
+│   └── backend_project/          # Django settings, URLs, WSGI
+│
+├── ROADMAP.md                    # Planned features
+└── README.md                     # This file
 ```
-
-## 🔒 Security Updates
-
-Recent security improvements include:
-- Updated `react-syntax-highlighter` to fix vulnerabilities
-- Replaced vulnerable PDF viewer with safer alternatives
-- Enhanced file upload validation
-- Improved authentication security
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Check the documentation section in the platform
-- Review the FAQ
-- Contact the development team
-- Submit issues through the platform's feedback system
 
 ---
 
-**EMSI Share Learn Platform** - Empowering education through collaborative technology.
+## 🗺 Roadmap
+
+See the full [**ROADMAP.md**](ROADMAP.md) for the complete list of planned features.
+
+**Coming next:**
+
+- [ ] 📝 Assignments & Submission System
+- [ ] 📊 Gradebook
+- [ ] ✅ Attendance Tracking
+- [ ] 🗓 Timetable / Class Schedule
+- [ ] 🔑 Forgot Password / Email Reset
+- [ ] 💬 Direct Messaging
+- [ ] 🎓 Certificates & Badges
+- [ ] 👨‍👩‍👧 Parent Portal
+- [ ] 🌍 Internationalization (EN / FR / AR)
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+
+```bash
+# 1. Fork the repository
+# 2. Create your feature branch
+git checkout -b feature/amazing-feature
+
+# 3. Commit your changes
+git commit -m "feat: add amazing feature"
+
+# 4. Push to the branch
+git push origin feature/amazing-feature
+
+# 5. Open a Pull Request
+```
+
+Please make sure to:
+- Follow the existing code style
+- Write meaningful commit messages
+- Test your changes before submitting
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information.
+
+---
+
+## 👨‍💻 Authors
+
+<table>
+<tr>
+<td align="center">
+<b>Naoufal Elouahabi</b><br/>
+<a href="mailto:naoufal.elouahabi@emsi-edu.ma">naoufal.elouahabi@emsi-edu.ma</a><br/>
+<a href="https://github.com/Elouahabi-Naoufal">@Elouahabi-Naoufal</a>
+</td>
+<td align="center">
+<b>Amine Amrani</b><br/>
+<a href="mailto:amraniaamine@gmail.com">amraniaamine@gmail.com</a>
+</td>
+</tr>
+</table>
+
+---
+
+<div align="center">
+
+**⭐ Star this repo if you find it useful!**
+
+[![GitHub stars](https://img.shields.io/github/stars/Elouahabi-Naoufal/EMSI-SHARE?style=social)](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/stargazers)
+
+<sub>Built with ❤️ at EMSI — École Marocaine des Sciences de l'Ingénieur</sub>
+
+</div>
