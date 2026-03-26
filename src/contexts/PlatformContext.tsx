@@ -67,71 +67,44 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
       // Get settings from API only - no localStorage fallback
       const settings = await platformAPI.getSettings();
       if (settings) {
-        // Update platform name
-        if (settings.platformName !== undefined) {
-          setPlatformName(settings.platformName || 'EMSI Share');
-          document.title = settings.platformName || 'EMSI Share';
-        }
-        
-        // Update logo
-        if (settings.logo !== undefined) {
-          setPlatformLogo(settings.logo || null);
+        setPlatformName(settings.platformName || 'EMSI Share');
+        document.title = settings.platformName || 'EMSI Share';
+
+        setPlatformLogo(settings.logo || null);
+        if (settings.logo) {
           const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
-          if (settings.logo) {
-            if (favicon) {
-              favicon.href = settings.logo;
-            } else {
-              const newFavicon = document.createElement('link');
-              newFavicon.rel = 'icon';
-              newFavicon.href = settings.logo;
-              document.head.appendChild(newFavicon);
-            }
+          if (favicon) {
+            favicon.href = settings.logo;
+          } else {
+            const newFavicon = document.createElement('link');
+            newFavicon.rel = 'icon';
+            newFavicon.href = settings.logo;
+            document.head.appendChild(newFavicon);
           }
         }
-        
-        // Update page sizes
+
         if (settings.pageSizes) {
           setPageSizes(settings.pageSizes);
-          
-          // Apply CSS variables for page sizes
           document.documentElement.style.setProperty('--resources-per-page', settings.pageSizes.resources.toString());
           document.documentElement.style.setProperty('--forum-posts-per-page', settings.pageSizes.forumPosts.toString());
           document.documentElement.style.setProperty('--events-per-page', settings.pageSizes.events.toString());
           document.documentElement.style.setProperty('--users-per-page', settings.pageSizes.users.toString());
         }
-        
-        // Update general settings
+
         if (settings.generalSettings) {
           setGeneralSettings(settings.generalSettings);
-          
-          // Apply maintenance mode if enabled
-          if (settings.generalSettings.maintenanceMode) {
+          const existing = document.getElementById('maintenance-banner');
+          if (settings.generalSettings.maintenanceMode && !existing) {
             const banner = document.createElement('div');
             banner.id = 'maintenance-banner';
-            banner.style.position = 'fixed';
-            banner.style.top = '0';
-            banner.style.left = '0';
-            banner.style.width = '100%';
-            banner.style.padding = '10px';
-            banner.style.backgroundColor = '#f97316';
-            banner.style.color = 'white';
-            banner.style.textAlign = 'center';
-            banner.style.zIndex = '9999';
+            banner.style.cssText = 'position:fixed;top:0;left:0;width:100%;padding:10px;background:#f97316;color:white;text-align:center;z-index:9999';
             banner.textContent = '⚠️ System is in maintenance mode. Some features may be unavailable.';
-            
-            if (!document.getElementById('maintenance-banner')) {
-              document.body.prepend(banner);
-            }
-          } else {
-            // Remove maintenance banner if exists
-            const banner = document.getElementById('maintenance-banner');
-            if (banner) {
-              banner.remove();
-            }
+            document.body.prepend(banner);
+          } else if (!settings.generalSettings.maintenanceMode && existing) {
+            existing.remove();
           }
         }
-        
-        // Update security settings
+
         if (settings.securitySettings) {
           setSecuritySettings(settings.securitySettings);
         }

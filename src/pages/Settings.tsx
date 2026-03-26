@@ -59,56 +59,16 @@ const Settings: React.FC = () => {
     const loadSettings = async () => {
       setIsLoading(true);
       try {
-        // Load platform settings from API
         const settings = await platformAPI.getSettings();
         if (settings) {
-          // Update platform name
-          if (settings.platformName) {
-            setPlatformName(settings.platformName);
-          }
-          
-          // Update page sizes
+          setPlatformName(settings.platformName || 'EMSI Share');
+          setPlatformLogo(settings.logo || null);
+
           if (settings.pageSizes) {
-            setDatabaseStats(prev => ({
-              ...prev,
-              pageSizes: {
-                ...prev.pageSizes,
-                ...settings.pageSizes
-              }
-            }));
+            setDatabaseStats(prev => ({ ...prev, pageSizes: { ...prev.pageSizes, ...settings.pageSizes } }));
           }
-          
-          // Update general settings
           if (settings.generalSettings) {
             setEnableRegistration(settings.generalSettings.enableRegistration);
-            
-            if (document.getElementById('maintenance-mode')) {
-              (document.getElementById('maintenance-mode') as HTMLInputElement).checked = 
-                settings.generalSettings.maintenanceMode;
-            }
-            
-            if (document.getElementById('public-profiles')) {
-              (document.getElementById('public-profiles') as HTMLInputElement).checked = 
-                settings.generalSettings.publicProfiles;
-            }
-          }
-          
-          // Update security settings
-          if (settings.securitySettings) {
-            if (document.getElementById('password-policy')) {
-              (document.getElementById('password-policy') as HTMLInputElement).checked = 
-                settings.securitySettings.passwordPolicy;
-            }
-            
-            if (document.getElementById('session-timeout')) {
-              (document.getElementById('session-timeout') as HTMLInputElement).checked = 
-                settings.securitySettings.sessionTimeout;
-            }
-          }
-          
-          // Load platform logo
-          if (settings.logo !== undefined) {
-            setPlatformLogo(settings.logo);
           }
         }
 
