@@ -1327,4 +1327,47 @@ export const platformAPI = {
       body: JSON.stringify(config),
     });
   },
+
+  getSshConfig: async () => {
+    return apiRequest('/platform/ssh/');
+  },
+
+  saveSshConfig: async (config: {
+    ssh_host: string;
+    ssh_port: string;
+    ssh_user: string;
+    ssh_auth_type: 'password' | 'key';
+    ssh_password: string;
+    ssh_private_key: string;
+  }) => {
+    return apiRequest('/platform/ssh/', {
+      method: 'POST',
+      body: JSON.stringify(config),
+    });
+  },
+
+  testSshConnection: async (config: {
+    ssh_host: string;
+    ssh_port: string;
+    ssh_user: string;
+    ssh_auth_type: 'password' | 'key';
+    ssh_password: string;
+    ssh_private_key: string;
+  }) => {
+    return apiRequest('/platform/ssh/test/', {
+      method: 'POST',
+      body: JSON.stringify(config),
+    });
+  },
+
+  getSshCommands: async () => {
+    return apiRequest('/platform/ssh/commands/');
+  },
+
+  executeSshCommand: async (command_key: string) => {
+    return apiRequest('/platform/ssh/execute/', {
+      method: 'POST',
+      body: JSON.stringify({ command_key }),
+    });
+  },
 };

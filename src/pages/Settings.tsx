@@ -25,6 +25,16 @@ const Settings: React.FC = () => {
   });
   const [dbTestResult, setDbTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [dbTesting, setDbTesting] = useState(false);
+  const [sshConfig, setSshConfig] = useState({
+    ssh_host: '', ssh_port: '22', ssh_user: '',
+    ssh_auth_type: 'password' as 'password' | 'key',
+    ssh_password: '', ssh_private_key: '',
+  });
+  const [sshTestResult, setSshTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [sshTesting, setSshTesting] = useState(false);
+  const [sshCommands, setSshCommands] = useState<{ key: string; command: string }[]>([]);
+  const [commandOutputs, setCommandOutputs] = useState<Record<string, { success: boolean; output: string; error: string } | null>>({});
+  const [runningCommand, setRunningCommand] = useState<string | null>(null);
   const [databaseStats, setDatabaseStats] = useState({
     used: 1.2, // GB
     total: 5, // GB
@@ -104,6 +114,14 @@ const Settings: React.FC = () => {
         // Load DB config
         const dbCfg = await platformAPI.getDbConfig();
         if (dbCfg) setDbConfig(dbCfg);
+
+        // Load SSH config and commands
+        const [sshCfg, cmds] = await Promise.all([
+          platformAPI.getSshConfig(),
+          platformAPI.getSshCommands(),
+        ]);
+        if (sshCfg) setSshConfig(sshCfg);
+        if (cmds) setSshCommands(cmds);
         
         // Load database stats
         const stats = await platformAPI.getDatabaseStats();
@@ -144,6 +162,44 @@ const Settings: React.FC = () => {
     
     loadSettings();
   }, []);
+
+  const handleTestSshConnection = async () => {
+    setSshTesting(true);
+    setSshTestResult(null);
+    try {
+      const result = await platformAPI.testSshConnection(sshConfig);
+      setSshTestResult(result);
+    } catch (e: any) {
+      setSshTestResult({ success: false, message: e.message });
+    } finally {
+      setSshTesting(false);
+    }
+  };
+
+  const handleSaveSshConfig = async () => {
+    setIsLoading(true);
+    try {
+      await platformAPI.saveSshConfig(sshConfig);
+      toast({ title: 'SSH config saved' });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRunCommand = async (key: string) => {
+    setRunningCommand(key);
+    setCommandOutputs(prev => ({ ...prev, [key]: null }));
+    try {
+      const result = await platformAPI.executeSshCommand(key);
+      setCommandOutputs(prev => ({ ...prev, [key]: result }));
+    } catch (e: any) {
+      setCommandOutputs(prev => ({ ...prev, [key]: { success: false, output: '', error: e.message } }));
+    } finally {
+      setRunningCommand(null);
+    }
+  };
 
   const handleTestDbConnection = async () => {
     setDbTesting(true);
@@ -247,10 +303,11 @@ const Settings: React.FC = () => {
         </div>
 
         <Tabs defaultValue="platform">
-          <TabsList className="grid w-full md:w-auto grid-cols-1 md:grid-cols-3">
+          <TabsList className="grid w-full md:w-auto grid-cols-1 md:grid-cols-4">
             <TabsTrigger value="platform">Platform</TabsTrigger>
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="database">Database</TabsTrigger>
+            <TabsTrigger value="server">Server</TabsTrigger>
           </TabsList>
           
           <TabsContent value="platform" className="mt-6">
@@ -553,6 +610,127 @@ const Settings: React.FC = () => {
                     Save Config
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="server" className="mt-6 space-y-6">
+            {/* SSH Configuration */}
+            <Card>
+              <CardHeader>
+                <CardTitle>SSH Configuration</CardTitle>
+                <CardDescription>Connect to your server via SSH to run predefined actions.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {(['ssh_host', 'ssh_port', 'ssh_user'] as const).map((field) => (
+                    <div key={field} className="grid gap-2">
+                      <Label>{field.replace('ssh_', '').toUpperCase()}</Label>
+                      <input
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        value={sshConfig[field]}
+                        onChange={(e) => setSshConfig(prev => ({ ...prev, [field]: e.target.value }))}
+                        placeholder={field === 'ssh_host' ? 'your-server.com' : field === 'ssh_port' ? '22' : 'ubuntu'}
+                        disabled={isLoading}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Auth type toggle */}
+                <div className="flex items-center gap-4">
+                  <Label>Auth Type</Label>
+                  <div className="flex gap-2">
+                    {(['password', 'key'] as const).map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setSshConfig(prev => ({ ...prev, ssh_auth_type: type }))}
+                        className={`px-4 py-1.5 rounded-md text-sm font-medium border transition-colors ${
+                          sshConfig.ssh_auth_type === type
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-background border-input hover:bg-muted'
+                        }`}
+                      >
+                        {type === 'password' ? 'Password' : 'SSH Key'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {sshConfig.ssh_auth_type === 'password' ? (
+                  <div className="grid gap-2">
+                    <Label>Password</Label>
+                    <input
+                      type="password"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      value={sshConfig.ssh_password}
+                      onChange={(e) => setSshConfig(prev => ({ ...prev, ssh_password: e.target.value }))}
+                      disabled={isLoading}
+                    />
+                  </div>
+                ) : (
+                  <div className="grid gap-2">
+                    <Label>Private Key (PEM)</Label>
+                    <textarea
+                      rows={6}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                      value={sshConfig.ssh_private_key}
+                      onChange={(e) => setSshConfig(prev => ({ ...prev, ssh_private_key: e.target.value }))}
+                      placeholder="-----BEGIN RSA PRIVATE KEY-----
+...
+-----END RSA PRIVATE KEY-----"
+                      disabled={isLoading}
+                    />
+                  </div>
+                )}
+
+                {sshTestResult && (
+                  <p className={`text-sm font-medium ${sshTestResult.success ? 'text-green-600' : 'text-red-600'}`}>
+                    {sshTestResult.success ? '✓' : '✗'} {sshTestResult.message}
+                  </p>
+                )}
+
+                <div className="flex gap-3 justify-end">
+                  <Button variant="outline" onClick={handleTestSshConnection} disabled={sshTesting || isLoading}>
+                    {sshTesting ? 'Testing...' : 'Test Connection'}
+                  </Button>
+                  <Button onClick={handleSaveSshConfig} disabled={isLoading}>Save SSH Config</Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Server Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Server Actions</CardTitle>
+                <CardDescription>Run predefined commands on your server via SSH.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {sshCommands.map(({ key, command }) => (
+                  <div key={key} className="space-y-2">
+                    <div className="flex items-center justify-between p-3 bg-muted rounded-md">
+                      <div>
+                        <p className="text-sm font-medium">{key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</p>
+                        <p className="text-xs text-muted-foreground font-mono">{command}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRunCommand(key)}
+                        disabled={runningCommand !== null}
+                      >
+                        {runningCommand === key ? 'Running...' : 'Run'}
+                      </Button>
+                    </div>
+                    {commandOutputs[key] && (
+                      <pre className={`text-xs p-3 rounded-md font-mono whitespace-pre-wrap max-h-48 overflow-y-auto ${
+                        commandOutputs[key]?.success ? 'bg-green-50 dark:bg-green-950 text-green-800 dark:text-green-200' : 'bg-red-50 dark:bg-red-950 text-red-800 dark:text-red-200'
+                      }`}>
+                        {commandOutputs[key]?.output || commandOutputs[key]?.error}
+                      </pre>
+                    )}
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </TabsContent>
