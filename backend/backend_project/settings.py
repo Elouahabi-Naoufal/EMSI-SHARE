@@ -90,14 +90,21 @@ WSGI_APPLICATION = 'backend_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+_db_config_path = BASE_DIR / 'db_config.json'
+_db_config = {}
+if _db_config_path.exists():
+    import json
+    with open(_db_config_path) as _f:
+        _db_config = json.load(_f)
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'emsi_share_db',
-        'USER': 'postgres',
-        'PASSWORD': '0000',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': _db_config.get('db_name') or 'emsi_share_db',
+        'USER': _db_config.get('db_user') or 'postgres',
+        'PASSWORD': _db_config.get('db_password') or '0000',
+        'HOST': _db_config.get('db_host') or 'localhost',
+        'PORT': _db_config.get('db_port') or '5432',
     }
 }
 

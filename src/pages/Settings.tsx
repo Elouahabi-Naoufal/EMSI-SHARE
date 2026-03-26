@@ -20,6 +20,11 @@ const Settings: React.FC = () => {
   const [platformName, setPlatformName] = useState('EMSI Share');
   const [platformLogo, setPlatformLogo] = useState(null);
   const [enableRegistration, setEnableRegistration] = useState(true);
+  const [dbConfig, setDbConfig] = useState({
+    db_host: '', db_port: '', db_name: '', db_user: '', db_password: ''
+  });
+  const [dbTestResult, setDbTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [dbTesting, setDbTesting] = useState(false);
   const [databaseStats, setDatabaseStats] = useState({
     used: 1.2, // GB
     total: 5, // GB
@@ -95,6 +100,10 @@ const Settings: React.FC = () => {
             setPlatformLogo(settings.logo);
           }
         }
+
+        // Load DB config
+        const dbCfg = await platformAPI.getDbConfig();
+        if (dbCfg) setDbConfig(dbCfg);
         
         // Load database stats
         const stats = await platformAPI.getDatabaseStats();
@@ -135,6 +144,31 @@ const Settings: React.FC = () => {
     
     loadSettings();
   }, []);
+
+  const handleTestDbConnection = async () => {
+    setDbTesting(true);
+    setDbTestResult(null);
+    try {
+      const result = await platformAPI.testDbConnection(dbConfig);
+      setDbTestResult(result);
+    } catch (e: any) {
+      setDbTestResult({ success: false, message: e.message });
+    } finally {
+      setDbTesting(false);
+    }
+  };
+
+  const handleSaveDbConfig = async () => {
+    setIsLoading(true);
+    try {
+      await platformAPI.saveDbConfig(dbConfig);
+      toast({ title: 'Database config saved', description: 'Restart the server to apply changes.' });
+    } catch (e: any) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -213,9 +247,10 @@ const Settings: React.FC = () => {
         </div>
 
         <Tabs defaultValue="platform">
-          <TabsList className="grid w-full md:w-auto grid-cols-1 md:grid-cols-2">
+          <TabsList className="grid w-full md:w-auto grid-cols-1 md:grid-cols-3">
             <TabsTrigger value="platform">Platform</TabsTrigger>
             <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="database">Database</TabsTrigger>
           </TabsList>
           
           <TabsContent value="platform" className="mt-6">
@@ -464,6 +499,58 @@ const Settings: React.FC = () => {
                 <div className="flex justify-end">
                   <Button onClick={handleSave} disabled={isLoading}>
                     {isLoading ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="database" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Database Connection</CardTitle>
+                <CardDescription>
+                  Override the PostgreSQL connection (e.g. point to a remote server). Restart the backend to apply.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(['db_host', 'db_port', 'db_name', 'db_user'] as const).map((field) => (
+                  <div key={field} className="grid gap-2">
+                    <Label htmlFor={field}>{field.replace('db_', '').replace('_', ' ').toUpperCase()}</Label>
+                    <input
+                      id={field}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      value={dbConfig[field]}
+                      onChange={(e) => setDbConfig(prev => ({ ...prev, [field]: e.target.value }))}
+                      placeholder={field === 'db_host' ? 'localhost' : field === 'db_port' ? '5432' : ''}
+                      disabled={isLoading}
+                    />
+                  </div>
+                ))}
+                <div className="grid gap-2">
+                  <Label htmlFor="db_password">PASSWORD</Label>
+                  <input
+                    id="db_password"
+                    type="password"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={dbConfig.db_password}
+                    onChange={(e) => setDbConfig(prev => ({ ...prev, db_password: e.target.value }))}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                {dbTestResult && (
+                  <p className={`text-sm font-medium ${dbTestResult.success ? 'text-green-600' : 'text-red-600'}`}>
+                    {dbTestResult.success ? '✓' : '✗'} {dbTestResult.message}
+                  </p>
+                )}
+
+                <div className="flex gap-3 justify-end">
+                  <Button variant="outline" onClick={handleTestDbConnection} disabled={dbTesting || isLoading}>
+                    {dbTesting ? 'Testing...' : 'Test Connection'}
+                  </Button>
+                  <Button onClick={handleSaveDbConfig} disabled={isLoading}>
+                    Save Config
                   </Button>
                 </div>
               </CardContent>

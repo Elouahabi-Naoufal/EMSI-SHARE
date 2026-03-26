@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 // API utility functions
 // Use cookies for JWT tokens
@@ -1296,5 +1296,35 @@ export const platformAPI = {
       console.error('Error fetching database stats:', error);
       throw error;
     }
-  }
+  },
+
+  getDbConfig: async () => {
+    return apiRequest('/platform/db-config/');
+  },
+
+  saveDbConfig: async (config: {
+    db_host: string;
+    db_port: string;
+    db_name: string;
+    db_user: string;
+    db_password: string;
+  }) => {
+    return apiRequest('/platform/db-config/', {
+      method: 'POST',
+      body: JSON.stringify(config),
+    });
+  },
+
+  testDbConnection: async (config: {
+    db_host: string;
+    db_port: string;
+    db_name: string;
+    db_user: string;
+    db_password: string;
+  }) => {
+    return apiRequest('/platform/db-config/test/', {
+      method: 'POST',
+      body: JSON.stringify(config),
+    });
+  },
 };
