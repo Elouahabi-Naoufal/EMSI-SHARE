@@ -22,43 +22,43 @@
 
 <br/>
 
-[**Live Demo**](https://github.com/Elouahabi-Naoufal/EMSI-SHARE) · [**Report Bug**](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/issues) · [**Request Feature**](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/issues) · [**Roadmap**](ROADMAP.md)
+[**Live Demo**](https://github.com/Elouahabi-Naoufal/EMSI-SHARE)  [**Report Bug**](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/issues)  [**Request Feature**](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/issues)  [**Roadmap**](ROADMAP.md)
 
 </div>
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [About](#-about)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Architecture](#-architecture)
-- [Getting Started](#-getting-started)
-- [User Roles](#-user-roles)
-- [API Overview](#-api-overview)
-- [Project Structure](#-project-structure)
-- [Roadmap](#-roadmap)
-- [Contributing](#-contributing)
-- [License](#-license)
-
----
-
-## 🎯 About
-
-**EMSI Share Learn** is a production-ready Learning Management System (LMS) built for schools and universities. It brings together resource sharing, quizzes, discussion forums, event management, and collaborative rooms into a single unified platform — all with role-based access control and a clean, modern UI.
-
-> Built as a final-year project (PFA) at EMSI — École Marocaine des Sciences de l'Ingénieur.
+- [About](#about)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+- [User Roles](#user-roles)
+- [API Overview](#api-overview)
+- [Project Structure](#project-structure)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## ✨ Features
+## About
+
+**EMSI Share Learn** is a production-ready Learning Management System (LMS) built for schools and universities. It brings together resource sharing, quizzes, discussion forums, event management, and collaborative rooms into a single unified platform  all with role-based access control and a clean, modern UI.
+
+> Built as a final-year project (PFA) at EMSI  École Marocaine des Sciences de l'Ingénieur.
+
+---
+
+## Features
 
 <table>
 <tr>
 <td>
 
-**📚 Resources**
+**Resources**
 - Upload & download educational files
 - Binary storage directly in PostgreSQL
 - PDF, Video, Audio, Code, Documents
@@ -68,7 +68,7 @@
 </td>
 <td>
 
-**🧠 Quizzes**
+**Quizzes**
 - Multiple choice & true/false
 - Time limits & attempt tracking
 - Auto-grading with score history
@@ -80,7 +80,7 @@
 <tr>
 <td>
 
-**💬 Forum**
+**Forum**
 - Threaded discussions per room
 - Upvote / downvote posts
 - Mark solutions, subscribe to topics
@@ -90,8 +90,8 @@
 </td>
 <td>
 
-**📅 Events**
-- 12 event types (lecture, exam, workshop…)
+**Events**
+- 12 event types (lecture, exam, workshop)
 - Online & physical events
 - RSVP attendance tracking
 - Collaborator management
@@ -102,7 +102,7 @@
 <tr>
 <td>
 
-**🏫 Rooms**
+**Rooms**
 - Teacher-created subject rooms
 - Student join via room code
 - Moderator & assistant roles
@@ -112,7 +112,7 @@
 </td>
 <td>
 
-**⚙️ Admin Panel**
+**Admin Panel**
 - Platform name & logo customization
 - User management (create, edit, delete)
 - Resource approval queue
@@ -125,7 +125,7 @@
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Frontend
 | Technology | Version | Purpose |
@@ -154,7 +154,7 @@
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -168,7 +168,7 @@
 │  └──────────┘  └──────────┘                             │
 └────────────────────────┬────────────────────────────────┘
                          │ HTTP / REST (JWT Bearer)
-┌────────────────────────▼────────────────────────────────┐
+┌────────────────────────────────────────────────────────┐
 │                   Django REST API                        │
 │  ┌────────┐ ┌─────────┐ ┌────────┐ ┌──────────────────┐ │
 │  │ users  │ │resources│ │quizzes │ │     forums       │ │
@@ -177,15 +177,15 @@
 │  └────────┘ └─────────┘ └────────┘ └──────────────────┘ │
 └────────────────────────┬────────────────────────────────┘
                          │
-┌────────────────────────▼────────────────────────────────┐
+┌────────────────────────────────────────────────────────┐
 │                    PostgreSQL                            │
-│         (Binary file storage — no filesystem)           │
+│         (Binary file storage  no filesystem)           │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -251,18 +251,18 @@ Admin    → http://localhost:8000/admin
 
 ---
 
-## 👥 User Roles
+## User Roles
 
 | Role | Description | Key Permissions |
 |---|---|---|
-| 🎓 **Student** | Default registration role | Join rooms, take quizzes, post in forums, upload resources (pending approval) |
-| 👨‍🏫 **Teacher** | Educator role | Create rooms & quizzes, manage resources, create events, view student analytics |
-| 🔧 **Admin** | Platform administrator | Full access, approve resources, manage users, platform settings |
-| 🏛 **Administration** | Institutional management | User CRUD, verification, platform-wide control |
+| **Student** | Default registration role | Join rooms, take quizzes, post in forums, upload resources (pending approval) |
+|  **Teacher** | Educator role | Create rooms & quizzes, manage resources, create events, view student analytics |
+| **Admin** | Platform administrator | Full access, approve resources, manage users, platform settings |
+|  **Administration** | Institutional management | User CRUD, verification, platform-wide control |
 
 ---
 
-## 📡 API Overview
+## API Overview
 
 Base URL: `http://localhost:8000/api`
 
@@ -289,7 +289,7 @@ Base URL: `http://localhost:8000/api`
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 emsi-share-learn/
@@ -330,25 +330,25 @@ emsi-share-learn/
 
 ---
 
-## 🗺 Roadmap
+## Roadmap
 
 See the full [**ROADMAP.md**](ROADMAP.md) for the complete list of planned features.
 
 **Coming next:**
 
-- [ ] 📝 Assignments & Submission System
-- [ ] 📊 Gradebook
-- [ ] ✅ Attendance Tracking
-- [ ] 🗓 Timetable / Class Schedule
-- [ ] 🔑 Forgot Password / Email Reset
-- [ ] 💬 Direct Messaging
-- [ ] 🎓 Certificates & Badges
-- [ ] 👨‍👩‍👧 Parent Portal
-- [ ] 🌍 Internationalization (EN / FR / AR)
+- [ ] Assignments & Submission System
+- [ ] Gradebook
+- [ ] Attendance Tracking
+- [ ] Timetable / Class Schedule
+- [ ] Forgot Password / Email Reset
+- [ ] Direct Messaging
+- [ ] Certificates & Badges
+- [ ] Parent Portal
+- [ ] Internationalization (EN / FR / AR)
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome!
 
@@ -373,13 +373,13 @@ Please make sure to:
 
 ---
 
-## 📄 License
+## License
 
 Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information.
 
 ---
 
-## 👨‍💻 Authors
+##  Authors
 
 <table>
 <tr>
@@ -399,10 +399,10 @@ Distributed under the MIT License. See [`LICENSE`](LICENSE) for more information
 
 <div align="center">
 
-**⭐ Star this repo if you find it useful!**
+** Star this repo if you find it useful!**
 
 [![GitHub stars](https://img.shields.io/github/stars/Elouahabi-Naoufal/EMSI-SHARE?style=social)](https://github.com/Elouahabi-Naoufal/EMSI-SHARE/stargazers)
 
-<sub>Built with ❤️ at EMSI — École Marocaine des Sciences de l'Ingénieur</sub>
+<sub>Built with  at EMSI  École Marocaine des Sciences de l'Ingénieur</sub>
 
 </div>
