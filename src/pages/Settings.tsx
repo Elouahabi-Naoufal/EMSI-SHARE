@@ -18,7 +18,8 @@ const Settings: React.FC = () => {
   
   // Platform configuration state
   const [platformName, setPlatformName] = useState('EMSI Share');
-  const [platformLogo, setPlatformLogo] = useState(null);
+  const [platformLogo, setPlatformLogo] = useState<string | null>(null);
+  const [logoChanged, setLogoChanged] = useState(false);
   const [enableRegistration, setEnableRegistration] = useState(true);
   const [dbConfig, setDbConfig] = useState({
     db_host: '', db_port: '', db_name: '', db_user: '', db_password: ''
@@ -106,7 +107,7 @@ const Settings: React.FC = () => {
           }
           
           // Load platform logo
-          if (settings.logo) {
+          if (settings.logo !== undefined) {
             setPlatformLogo(settings.logo);
           }
         }
@@ -228,9 +229,7 @@ const Settings: React.FC = () => {
 
   const handleSave = async () => {
     setIsLoading(true);
-    
     try {
-      // Prepare settings to save to database
       const settingsToSave = {
         platformName,
         pageSizes: databaseStats.pageSizes,
@@ -244,32 +243,21 @@ const Settings: React.FC = () => {
           sessionTimeout: true,
         }
       };
-      
-      // Save settings to database
       await platformAPI.updateSettings(settingsToSave);
-      
-      // Save logo separately if it exists
-      if (platformLogo) {
+      if (logoChanged && platformLogo) {
         await platformAPI.uploadLogo(platformLogo);
+        setLogoChanged(false);
       }
-      
-      // Refresh platform settings in context to update all components
       await refreshPlatformSettings();
-      
       toast({
         title: "Settings saved",
-        description: "Your changes have been successfully saved to the database and will be applied for all users.",
+        description: "Changes applied successfully.",
       });
-      
-      // Reload the page to ensure all components get the new settings
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
     } catch (error) {
       console.error('Error saving settings:', error);
       toast({
         title: "Error saving settings",
-        description: "Failed to save settings to the database. Please try again.",
+        description: "Failed to save settings. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -363,6 +351,7 @@ const Settings: React.FC = () => {
                               const reader = new FileReader();
                               reader.onload = (event) => {
                                 setPlatformLogo(event.target?.result as string);
+                                setLogoChanged(true);
                               };
                               reader.readAsDataURL(file);
                             }

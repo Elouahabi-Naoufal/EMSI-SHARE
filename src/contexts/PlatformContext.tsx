@@ -68,25 +68,24 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({ children }) 
       const settings = await platformAPI.getSettings();
       if (settings) {
         // Update platform name
-        if (settings.platformName) {
-          setPlatformName(settings.platformName);
-          // Update document title
-          document.title = settings.platformName;
+        if (settings.platformName !== undefined) {
+          setPlatformName(settings.platformName || 'EMSI Share');
+          document.title = settings.platformName || 'EMSI Share';
         }
         
         // Update logo
-        if (settings.logo) {
-          setPlatformLogo(settings.logo);
-          
-          // Apply logo to favicon
+        if (settings.logo !== undefined) {
+          setPlatformLogo(settings.logo || null);
           const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
-          if (favicon) {
-            favicon.href = settings.logo;
-          } else {
-            const newFavicon = document.createElement('link');
-            newFavicon.rel = 'icon';
-            newFavicon.href = settings.logo;
-            document.head.appendChild(newFavicon);
+          if (settings.logo) {
+            if (favicon) {
+              favicon.href = settings.logo;
+            } else {
+              const newFavicon = document.createElement('link');
+              newFavicon.rel = 'icon';
+              newFavicon.href = settings.logo;
+              document.head.appendChild(newFavicon);
+            }
           }
         }
         
