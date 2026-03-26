@@ -62,29 +62,38 @@ def _ssh_connect(config):
     client.connect(**kwargs)
     return client
 
+class PlatformPublicView(APIView):
+    """
+    Public endpoint — returns only platformName, logo, and enableRegistration.
+    No authentication required.
+    """
+    permission_classes = []
+    authentication_classes = []
+
+    def get(self, request):
+        settings = PlatformSettings.get_settings()
+        return Response({
+            'platformName': settings.platform_name,
+            'logo': settings.logo,
+            'generalSettings': {
+                'enableRegistration': settings.enable_registration,
+            }
+        })
+
+
 class PlatformSettingsView(APIView):
     """
-    API endpoint for platform settings
+    API endpoint for full platform settings — admin/administration only.
     """
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
-        """Get platform settings"""
-        # Allow unauthenticated access to check registration status
-        if not request.user.is_authenticated:
-            settings = PlatformSettings.get_settings()
-            return Response({
-                'generalSettings': {
-                    'enableRegistration': settings.enable_registration
-                }
-            })
-        
         if request.user.role not in ['admin', 'administration']:
             return Response(
                 {"detail": "Permission denied"},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+
         settings = PlatformSettings.get_settings()
         serializer = PlatformSettingsSerializer(settings)
         return Response(serializer.data)

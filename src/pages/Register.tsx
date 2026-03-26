@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
-import { platformAPI } from '@/services/api';
 
 const Register: React.FC = () => {
   const [name, setName] = useState('');
@@ -20,23 +19,17 @@ const Register: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { register } = useAuth();
-  const { platformName, platformLogo } = usePlatform();
+  const { platformName, platformLogo, generalSettings } = usePlatform();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check if registration is enabled first
-    try {
-      const settings = await platformAPI.getSettings();
-      if (settings?.generalSettings?.enableRegistration === false) {
-        toast.error('Registration is currently disabled by the administrator. Please contact support if you need an account.');
-        return;
-      }
-    } catch (error) {
-      console.warn('Could not check registration settings:', error);
+    if (!generalSettings.enableRegistration) {
+      toast.error('Registration is currently disabled by the administrator. Please contact support if you need an account.');
+      return;
     }
-    
+
     if (!name || !email || !password) {
       toast.error('Please fill in all fields');
       return;

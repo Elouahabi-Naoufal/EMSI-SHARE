@@ -14,13 +14,16 @@ import { platformAPI } from '@/services/api';
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { refreshPlatformSettings } = usePlatform();
-  
-  // Platform configuration state
-  const [platformName, setPlatformName] = useState('EMSI Share');
-  const [platformLogo, setPlatformLogo] = useState<string | null>(null);
+  const { platformName, platformLogo, pageSizes: contextPageSizes, generalSettings: contextGeneralSettings, securitySettings: contextSecuritySettings, refreshPlatformSettings } = usePlatform();
+
+  const [localPlatformName, setLocalPlatformName] = useState(platformName);
+  const [localPlatformLogo, setLocalPlatformLogo] = useState<string | null>(platformLogo);
   const [logoChanged, setLogoChanged] = useState(false);
-  const [enableRegistration, setEnableRegistration] = useState(true);
+  const [enableRegistration, setEnableRegistration] = useState(contextGeneralSettings.enableRegistration);
+  const [maintenanceMode, setMaintenanceMode] = useState(contextGeneralSettings.maintenanceMode);
+  const [publicProfiles, setPublicProfiles] = useState(contextGeneralSettings.publicProfiles);
+  const [passwordPolicy, setPasswordPolicy] = useState(contextSecuritySettings.passwordPolicy);
+  const [sessionTimeout, setSessionTimeout] = useState(contextSecuritySettings.sessionTimeout);
   const [dbConfig, setDbConfig] = useState({
     db_host: '', db_port: '', db_name: '', db_user: '', db_password: ''
   });
@@ -54,21 +57,32 @@ const Settings: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   
-  // Load settings from database on component mount
+  // Sync local state when context updates (e.g. from polling)
+  useEffect(() => { setLocalPlatformName(platformName); }, [platformName]);
+  useEffect(() => { if (!logoChanged) setLocalPlatformLogo(platformLogo); }, [platformLogo, logoChanged]);
+  useEffect(() => {
+    setEnableRegistration(contextGeneralSettings.enableRegistration);
+    setMaintenanceMode(contextGeneralSettings.maintenanceMode);
+    setPublicProfiles(contextGeneralSettings.publicProfiles);
+  }, [contextGeneralSettings]);
+  useEffect(() => {
+    setPasswordPolicy(contextSecuritySettings.passwordPolicy);
+    setSessionTimeout(contextSecuritySettings.sessionTimeout);
+  }, [contextSecuritySettings]);
+
   useEffect(() => {
     const loadSettings = async () => {
       setIsLoading(true);
       try {
         const settings = await platformAPI.getSettings();
         if (settings) {
-          setPlatformName(settings.platformName || 'EMSI Share');
-          setPlatformLogo(settings.logo || null);
-
           if (settings.pageSizes) {
             setDatabaseStats(prev => ({ ...prev, pageSizes: { ...prev.pageSizes, ...settings.pageSizes } }));
           }
           if (settings.generalSettings) {
             setEnableRegistration(settings.generalSettings.enableRegistration);
+            setMaintenanceMode(settings.generalSettings.maintenanceMode);
+            setPublicProfiles(settings.generalSettings.publicProfiles);
           }
         }
 
@@ -191,21 +205,21 @@ const Settings: React.FC = () => {
     setIsLoading(true);
     try {
       const settingsToSave = {
-        platformName,
+        platformName: localPlatformName,
         pageSizes: databaseStats.pageSizes,
         generalSettings: {
-          enableRegistration: enableRegistration,
-          maintenanceMode: false,
-          publicProfiles: true,
+          enableRegistration,
+          maintenanceMode,
+          publicProfiles,
         },
         securitySettings: {
-          passwordPolicy: true,
-          sessionTimeout: true,
+          passwordPolicy,
+          sessionTimeout,
         }
       };
       await platformAPI.updateSettings(settingsToSave);
-      if (logoChanged && platformLogo) {
-        await platformAPI.uploadLogo(platformLogo);
+      if (logoChanged && localPlatformLogo) {
+        await platformAPI.uploadLogo(localPlatformLogo);
         setLogoChanged(false);
       }
       await refreshPlatformSettings();
@@ -274,8 +288,8 @@ const Settings: React.FC = () => {
                     <input
                       id="platform-name"
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={platformName}
-                      onChange={(e) => setPlatformName(e.target.value)}
+                      value={localPlatformName}
+                      onChange={(e) => setLocalPlatformName(e.target.value)}
                       disabled={isLoading}
                     />
                   </div>
@@ -285,9 +299,9 @@ const Settings: React.FC = () => {
                     <Label htmlFor="platform-logo">Platform Logo</Label>
                     <div className="flex items-center gap-4">
                       <div className="h-16 w-16 rounded-md border border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
-                        {platformLogo ? (
+                        {localPlatformLogo ? (
                           <img 
-                            src={platformLogo} 
+                            src={localPlatformLogo} 
                             alt="Platform Logo" 
                             className="h-full w-full object-cover"
                           />
@@ -310,7 +324,7 @@ const Settings: React.FC = () => {
                             if (file) {
                               const reader = new FileReader();
                               reader.onload = (event) => {
-                                setPlatformLogo(event.target?.result as string);
+                                setLocalPlatformLogo(event.target?.result as string);
                                 setLogoChanged(true);
                               };
                               reader.readAsDataURL(file);

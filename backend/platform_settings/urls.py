@@ -1,11 +1,12 @@
 from django.urls import path
 from .views import (
-    PlatformSettingsView, PlatformLogoView, DatabaseStatsView,
+    PlatformPublicView, PlatformSettingsView, PlatformLogoView, DatabaseStatsView,
     DatabaseConfigView, DatabaseConfigTestView,
     SSHConfigView, SSHTestView, SSHExecuteView, SSHCommandsListView,
 )
 
 urlpatterns = [
+    path('public/',             PlatformPublicView.as_view(),    name='platform_public'),
     path('settings/',           PlatformSettingsView.as_view(),  name='platform_settings'),
     path('logo/',               PlatformLogoView.as_view(),       name='platform_logo'),
     path('stats/',              DatabaseStatsView.as_view(),      name='database_stats'),

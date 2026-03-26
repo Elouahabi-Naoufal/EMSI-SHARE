@@ -1235,6 +1235,12 @@ export const uploadAPI = {
 
 // Platform settings API
 export const platformAPI = {
+  getPublicSettings: async () => {
+    const response = await fetch(`${API_BASE_URL}/platform/public/`);
+    if (!response.ok) return null;
+    return response.json();
+  },
+
   getSettings: async () => {
     try {
       const response = await apiRequest('/platform/settings/');
