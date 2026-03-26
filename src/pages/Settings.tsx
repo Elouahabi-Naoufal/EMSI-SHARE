@@ -706,31 +706,67 @@ const Settings: React.FC = () => {
                 <CardDescription>Run predefined commands on your server via SSH.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                {sshCommands.map(({ key, command }) => (
-                  <div key={key} className="space-y-2">
-                    <div className="flex items-center justify-between p-3 bg-muted rounded-md">
-                      <div>
-                        <p className="text-sm font-medium">{key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</p>
-                        <p className="text-xs text-muted-foreground font-mono">{command}</p>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleRunCommand(key)}
-                        disabled={runningCommand !== null}
-                      >
-                        {runningCommand === key ? 'Running...' : 'Run'}
-                      </Button>
+                {/* Migrate button - prominent */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-4 border-2 border-primary/30 bg-primary/5 rounded-md">
+                    <div>
+                      <p className="text-sm font-semibold">Run Migrations</p>
+                      <p className="text-xs text-muted-foreground font-mono">python manage.py migrate --no-input</p>
                     </div>
-                    {commandOutputs[key] && (
-                      <pre className={`text-xs p-3 rounded-md font-mono whitespace-pre-wrap max-h-48 overflow-y-auto ${
-                        commandOutputs[key]?.success ? 'bg-green-50 dark:bg-green-950 text-green-800 dark:text-green-200' : 'bg-red-50 dark:bg-red-950 text-red-800 dark:text-red-200'
-                      }`}>
-                        {commandOutputs[key]?.output || commandOutputs[key]?.error}
-                      </pre>
-                    )}
+                    <Button
+                      size="sm"
+                      onClick={() => handleRunCommand('run_migrations')}
+                      disabled={runningCommand !== null}
+                    >
+                      {runningCommand === 'run_migrations' ? 'Running...' : 'Migrate'}
+                    </Button>
                   </div>
-                ))}
+                  {commandOutputs['run_migrations'] && (
+                    <div className={`rounded-md p-3 ${
+                      commandOutputs['run_migrations']?.success ? 'bg-green-50 dark:bg-green-950' : 'bg-red-50 dark:bg-red-950'
+                    }`}>
+                      {!commandOutputs['run_migrations']?.success && (
+                        <p className="text-xs font-semibold text-red-700 dark:text-red-300 mb-1">
+                          ✗ Migration failed
+                        </p>
+                      )}
+                      <pre className={`text-xs font-mono whitespace-pre-wrap max-h-64 overflow-y-auto ${
+                        commandOutputs['run_migrations']?.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
+                      }`}>
+                        {commandOutputs['run_migrations']?.output || ''}
+                        {commandOutputs['run_migrations']?.error ? `\nSTDERR:\n${commandOutputs['run_migrations']?.error}` : ''}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t pt-3 space-y-2">
+                  {sshCommands.filter(({ key }) => key !== 'run_migrations').map(({ key, command }) => (
+                    <div key={key} className="space-y-2">
+                      <div className="flex items-center justify-between p-3 bg-muted rounded-md">
+                        <div>
+                          <p className="text-sm font-medium">{key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</p>
+                          <p className="text-xs text-muted-foreground font-mono">{command}</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleRunCommand(key)}
+                          disabled={runningCommand !== null}
+                        >
+                          {runningCommand === key ? 'Running...' : 'Run'}
+                        </Button>
+                      </div>
+                      {commandOutputs[key] && (
+                        <pre className={`text-xs p-3 rounded-md font-mono whitespace-pre-wrap max-h-48 overflow-y-auto ${
+                          commandOutputs[key]?.success ? 'bg-green-50 dark:bg-green-950 text-green-800 dark:text-green-200' : 'bg-red-50 dark:bg-red-950 text-red-800 dark:text-red-200'
+                        }`}>
+                          {commandOutputs[key]?.output || commandOutputs[key]?.error}
+                        </pre>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

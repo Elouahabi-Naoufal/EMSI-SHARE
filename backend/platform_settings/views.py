@@ -13,8 +13,8 @@ from pathlib import Path
 CONFIG_PATH = Path(__file__).resolve().parent.parent / 'db_config.json'
 
 WHITELISTED_COMMANDS = {
-    'restart_server':   'sudo systemctl restart gunicorn',
     'run_migrations':   'cd ~/app && source env/bin/activate && python manage.py migrate --no-input',
+    'restart_server':   'sudo systemctl restart gunicorn',
     'collect_static':   'cd ~/app && source env/bin/activate && python manage.py collectstatic --no-input',
     'disk_usage':       'df -h',
     'memory_usage':     'free -h',
