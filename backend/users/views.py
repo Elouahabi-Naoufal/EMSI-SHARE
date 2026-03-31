@@ -116,8 +116,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             data = response.data
             access = data.get('access')
             refresh = data.get('refresh')
-            max_age_access = 60 * 60 * 24  # 1 day
-            max_age_refresh = 60 * 60 * 24 * 14  # 14 days
+            max_age_access = 60 * 60 * 24
+            max_age_refresh = 60 * 60 * 24 * 14
             response.set_cookie(
                 settings.SIMPLE_JWT.get('AUTH_COOKIE', 'emsi_access'),
                 access,
@@ -138,6 +138,15 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 path=settings.SIMPLE_JWT.get('AUTH_COOKIE_PATH', '/'),
                 domain=settings.SIMPLE_JWT.get('AUTH_COOKIE_DOMAIN', None),
             )
+            # Log the login
+            try:
+                from rest_framework_simplejwt.tokens import AccessToken
+                token = AccessToken(access)
+                user = User.objects.get(id=token['user_id'])
+                from audit_logs.utils import log_action
+                log_action(user, 'user_login', 'User', user.id, {'email': user.email}, request)
+            except Exception:
+                pass
         return response
 
 class ChangePasswordView(views.APIView):
@@ -497,6 +506,15 @@ class TwoFactorVerifyView(views.APIView):
         if not totp.verify(code, valid_window=1):
             return Response({'detail': 'Invalid 2FA code.'}, status=400)
         return Response({'detail': '2FA verified.', 'verified': True})
+
+
+class LogoutView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        from audit_logs.utils import log_action
+        log_action(request.user, 'user_logout', 'User', request.user.id, {'email': request.user.email}, request)
+        return Response({'detail': 'Logged out.'})
 
 
 class ParentPortalView(views.APIView):

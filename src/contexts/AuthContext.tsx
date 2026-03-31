@@ -169,6 +169,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Logout function
   const logout = () => {
+    // Fire logout audit log (best effort, don't await)
+    const token = getCookie('emsi_access');
+    if (token) {
+      fetch('http://127.0.0.1:8000/api/auth/logout/', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
     setUser(null);
     setIsAuthenticated(false);
     removeCookie('emsi_access');
