@@ -3,8 +3,15 @@ from .models import Event, EventAttendee, EventCollaborator, ChunkUploadSession
 from django.contrib.auth import get_user_model
 from rooms.serializers import RoomSerializer
 import base64
+import secrets
 
 User = get_user_model()
+
+
+def _generate_jitsi_link(event_id: int, title: str) -> str:
+    slug = title.lower().replace(' ', '-')[:30]
+    token = secrets.token_hex(4)
+    return f"https://meet.jit.si/{slug}-{event_id}-{token}"
 
 class UserSerializer(serializers.ModelSerializer):
     profile_picture_data = serializers.SerializerMethodField()
@@ -112,7 +119,13 @@ class EventSerializer(serializers.ModelSerializer):
         trailer_type = validated_data.pop('trailer_type', None)
         
         validated_data['created_by'] = self.context['request'].user
+        # Auto-generate Jitsi link for online events without a meeting link
+        if validated_data.get('is_online') and not validated_data.get('meeting_link'):
+            validated_data['meeting_link'] = _generate_jitsi_link(0, validated_data.get('title', 'event'))
         event = super().create(validated_data)
+        if event.is_online and 'meet.jit.si' in (event.meeting_link or '') and '-0-' in (event.meeting_link or ''):
+            event.meeting_link = _generate_jitsi_link(event.id, event.title)
+            event.save(update_fields=['meeting_link'])
         
         # Handle image upload (always save to image fields)
         if image_upload:

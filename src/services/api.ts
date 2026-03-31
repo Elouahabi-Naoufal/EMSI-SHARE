@@ -1498,3 +1498,38 @@ export const authExtrasAPI = {
     }).then(r => r.json());
   },
 };
+
+// Certificates & Badges API
+export const certificatesAPI = {
+  getBadges: () => apiRequest('/badges/'),
+  getUserBadges: (userId?: string) => apiRequest(`/user-badges/${userId ? `?user=${userId}` : ''}`),
+  awardBadge: (badgeId: string, userId: string) => apiRequest('/user-badges/award/', { method: 'POST', body: JSON.stringify({ badge_id: badgeId, user_id: userId }) }),
+  getCertificates: (roomId?: string) => apiRequest(`/certificates/${roomId ? `?room=${roomId}` : ''}`),
+  issueCertificate: (data: { student: string; room: string; notes?: string }) => apiRequest('/certificates/', { method: 'POST', body: JSON.stringify(data) }),
+  deleteCertificate: (id: string) => apiRequest(`/certificates/${id}/`, { method: 'DELETE' }),
+};
+
+// Audit Logs API
+export const auditLogsAPI = {
+  getLogs: (params?: { action?: string; actor?: string }) => {
+    const q = new URLSearchParams(params as any).toString();
+    return apiRequest(`/audit-logs/?${q}`);
+  },
+  exportCsv: () => {
+    const token = getAuthToken();
+    return fetch(`${API_BASE_URL}/audit-logs/?export=csv`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.blob());
+  },
+};
+
+// Plagiarism check
+export const plagiarismAPI = {
+  check: (assignmentId: string) => apiRequest(`/submissions/plagiarism-check/?assignment=${assignmentId}`),
+};
+
+// Data export
+export const dataExportAPI = {
+  exportMyData: () => {
+    const token = getAuthToken();
+    return fetch(`${API_BASE_URL}/auth/export-data/`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.blob());
+  },
+};

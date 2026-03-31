@@ -8,6 +8,17 @@ from .models import Assignment, AssignmentSubmission
 from .serializers import AssignmentSerializer, AssignmentSubmissionSerializer
 
 
+def _text_similarity(a: str, b: str) -> float:
+    """Jaccard similarity on word sets."""
+    if not a or not b:
+        return 0.0
+    set_a = set(a.lower().split())
+    set_b = set(b.lower().split())
+    if not set_a or not set_b:
+        return 0.0
+    return len(set_a & set_b) / len(set_a | set_b)
+
+
 class AssignmentViewSet(viewsets.ModelViewSet):
     serializer_class = AssignmentSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -119,3 +130,33 @@ class AssignmentSubmissionViewSet(viewsets.ModelViewSet):
         response = HttpResponse(submission.file_data, content_type=submission.file_type or 'application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{submission.file_name}"'
         return response
+
+    @action(detail=False, methods=['get'], url_path='plagiarism-check')
+    def plagiarism_check(self, request):
+        """Basic similarity check across text submissions for an assignment."""
+        assignment_id = request.query_params.get('assignment')
+        if not assignment_id:
+            return Response({'error': 'assignment parameter required'}, status=400)
+        if request.user.role not in ['teacher', 'admin', 'administration']:
+            return Response({'error': 'Permission denied'}, status=403)
+
+        submissions = AssignmentSubmission.objects.filter(
+            assignment_id=assignment_id,
+            text_answer__isnull=False
+        ).exclude(text_answer='')
+
+        results = []
+        subs_list = list(submissions)
+
+        for i, s1 in enumerate(subs_list):
+            for s2 in subs_list[i+1:]:
+                similarity = _text_similarity(s1.text_answer or '', s2.text_answer or '')
+                if similarity > 0.5:
+                    results.append({
+                        'student_1': s1.student.email,
+                        'student_2': s2.student.email,
+                        'similarity': round(similarity * 100, 1),
+                        'flagged': similarity > 0.7,
+                    })
+
+        return Response(sorted(results, key=lambda x: -x['similarity']))

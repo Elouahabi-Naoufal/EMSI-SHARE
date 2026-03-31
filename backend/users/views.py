@@ -324,3 +324,50 @@ class BulkUserImportView(views.APIView):
 
         return Response({'created': len(created), 'skipped': len(skipped), 'errors': errors,
                          'created_emails': created, 'skipped_emails': skipped})
+
+
+class EmailVerificationView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        token_str = request.query_params.get('token', '')
+        try:
+            token = EmailVerificationToken.objects.get(token=token_str, used=False)
+        except EmailVerificationToken.DoesNotExist:
+            return Response({'detail': 'Invalid or expired token.'}, status=400)
+        if token.is_expired:
+            return Response({'detail': 'Token has expired.'}, status=400)
+        token.user.is_verified = True
+        token.user.save()
+        token.used = True
+        token.save()
+        return Response({'detail': 'Email verified successfully.'})
+
+
+class DataExportView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        import json
+        from django.forms.models import model_to_dict
+
+        user = request.user
+        data = {
+            'profile': {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'username': user.username,
+                'role': user.role,
+                'date_joined': str(user.date_joined),
+            },
+            'quiz_attempts': list(user.quiz_attempts.values('quiz__title', 'score', 'start_time', 'status')),
+            'forum_topics': list(user.created_topics.values('title', 'created_at')),
+            'forum_posts': list(user.forum_posts.values('content', 'created_at')),
+            'uploaded_resources': list(user.uploaded_resources.values('title', 'type', 'uploaded_at')),
+            'notifications': list(user.notifications.values('title', 'message', 'created_at')),
+        }
+        response = HttpResponse(json.dumps(data, indent=2, default=str), content_type='application/json')
+        response['Content-Disposition'] = f'attachment; filename="my_data_{user.id}.json"'
+        return response

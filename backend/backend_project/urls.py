@@ -26,7 +26,7 @@ router.register(r'forums/posts', ForumPostViewSet)
 router.register(r'forums/attachments', ForumAttachmentViewSet)
 router.register(r'notifications', NotificationViewSet, basename='notification')
 
-from users.views import UserDeleteView, AdminUserCreateView, AdminUserUpdateView, ForgotPasswordView, ResetPasswordView, BulkUserImportView
+from users.views import UserDeleteView, AdminUserCreateView, AdminUserUpdateView, ForgotPasswordView, ResetPasswordView, BulkUserImportView, EmailVerificationView, DataExportView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -40,12 +40,16 @@ urlpatterns = [
     path('api/', include('messaging.urls')),
     path('api/', include('announcements.urls')),
     path('api/', include('calendar_app.urls')),
+    path('api/', include('certificates.urls')),
+    path('api/', include('audit_logs.urls')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/register/', RegisterView.as_view(), name='register'),
     path('api/auth/me/', MeView.as_view(), name='me'),
     path('api/auth/forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
     path('api/auth/reset-password/', ResetPasswordView.as_view(), name='reset_password'),
+    path('api/auth/verify-email/', EmailVerificationView.as_view(), name='verify_email'),
+    path('api/auth/export-data/', DataExportView.as_view(), name='export_data'),
     path('api/users/', UserListView.as_view(), name='users'),
     path('api/users/create/', AdminUserCreateView.as_view(), name='user_create'),
     path('api/users/bulk-import/', BulkUserImportView.as_view(), name='bulk_import'),

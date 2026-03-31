@@ -60,6 +60,8 @@ INSTALLED_APPS = [
     'messaging',
     'announcements',
     'calendar_app',
+    'certificates',
+    'audit_logs',
 ]
 
 MIDDLEWARE = [

@@ -21,6 +21,9 @@ import {
   Clock,
   Mail,
   Megaphone,
+  Award,
+  Upload,
+  Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -72,8 +75,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) => {
     { name: 'Announcements', href: '/announcements', icon: Megaphone },
     { name: 'Academic Calendar', href: '/calendar', icon: BookOpen },
     { name: 'Messages', href: '/messages', icon: Mail },
+    { name: 'Certificates', href: '/certificates', icon: Award },
     ...(user?.role === 'admin' || user?.role === 'administration' ? [
       { name: 'Users', href: '/users', icon: Users },
+      { name: 'Bulk Import', href: '/bulk-import', icon: Upload },
+      { name: 'Audit Logs', href: '/audit-logs', icon: Shield },
       { name: 'Settings', href: '/settings', icon: Settings },
     ] : []),
   ];

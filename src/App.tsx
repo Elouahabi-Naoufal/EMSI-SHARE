@@ -38,6 +38,9 @@ import Timetable from "./pages/timetable/Timetable";
 import Messaging from "./pages/messaging/Messaging";
 import Announcements from "./pages/announcements/Announcements";
 import AcademicCalendar from "./pages/calendar/AcademicCalendar";
+import Certificates from "./pages/certificates/Certificates";
+import AuditLogs from "./pages/admin/AuditLogs";
+import BulkImport from "./pages/admin/BulkImport";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +83,9 @@ const App = () => (
               <Route path="/messages" element={<Messaging />} />
               <Route path="/announcements" element={<Announcements />} />
               <Route path="/calendar" element={<AcademicCalendar />} />
+              <Route path="/certificates" element={<Certificates />} />
+              <Route path="/audit-logs" element={<AuditLogs />} />
+              <Route path="/bulk-import" element={<BulkImport />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
