@@ -82,6 +82,8 @@ class ResourceViewSet(viewsets.ModelViewSet):
         log_action(self.request.user, 'resource_deleted', 'Resource', instance.id,
                    {'title': instance.title}, self.request)
         instance.delete()
+
+    @action(detail=True, methods=['get'], url_path='download')
     def download(self, request, pk=None):
         try:
             resource = Resource.objects.get(pk=pk)
