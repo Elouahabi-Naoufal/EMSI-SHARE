@@ -20,7 +20,7 @@ const AuditLogs: React.FC = () => {
   const { user } = useAuth();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [actionFilter, setActionFilter] = useState('');
+  const [actionFilter, setActionFilter] = useState('all');
 
   useEffect(() => {
     if (user?.role !== 'admin' && user?.role !== 'administration') return;
@@ -30,7 +30,8 @@ const AuditLogs: React.FC = () => {
   const load = async () => {
     setLoading(true);
     try {
-      const d = await auditLogsAPI.getLogs(actionFilter ? { action: actionFilter } : undefined);
+      const params = actionFilter !== 'all' ? { action: actionFilter } : undefined;
+      const d = await auditLogsAPI.getLogs(params);
       setLogs(Array.isArray(d) ? d : d?.results || []);
     } catch { toast.error('Failed to load audit logs'); }
     finally { setLoading(false); }
@@ -66,7 +67,7 @@ const AuditLogs: React.FC = () => {
           <Select value={actionFilter} onValueChange={setActionFilter}>
             <SelectTrigger><SelectValue placeholder="Filter by action" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All actions</SelectItem>
+              <SelectItem value="all">All actions</SelectItem>
               {ACTION_TYPES.map(a => <SelectItem key={a} value={a}>{a.replace(/_/g, ' ')}</SelectItem>)}
             </SelectContent>
           </Select>

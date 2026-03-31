@@ -120,6 +120,9 @@ class AssignmentSubmissionViewSet(viewsets.ModelViewSet):
         submission.graded_by = request.user
         submission.graded_at = timezone.now()
         submission.save()
+        from audit_logs.utils import log_action
+        log_action(request.user, 'assignment_graded', 'Submission', submission.id,
+                   {'student': submission.student.email, 'score': submission.score}, request)
         return Response(AssignmentSubmissionSerializer(submission).data)
 
     @action(detail=True, methods=['get'], url_path='download')

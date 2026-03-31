@@ -145,6 +145,9 @@ class PlatformSettingsView(APIView):
         
         settings.save()
         
+        from audit_logs.utils import log_action
+        log_action(request.user, 'settings_changed', 'PlatformSettings', 1, request.data, request)
+        
         serializer = PlatformSettingsSerializer(settings)
         return Response(serializer.data)
 

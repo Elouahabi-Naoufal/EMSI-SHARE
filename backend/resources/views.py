@@ -135,6 +135,9 @@ class ResourceViewSet(viewsets.ModelViewSet):
             resource.reviewed_at = timezone.now()
             resource.save()
             
+            from audit_logs.utils import log_action
+            log_action(user, 'resource_approved', 'Resource', resource.id, {'title': resource.title}, request)
+            
             # Create notification for the student
             from notifications.models import Notification, NotificationType
             notification_type, _ = NotificationType.objects.get_or_create(
@@ -192,6 +195,9 @@ class ResourceViewSet(viewsets.ModelViewSet):
             resource.reviewed_by = user
             resource.reviewed_at = timezone.now()
             resource.save()
+            
+            from audit_logs.utils import log_action
+            log_action(user, 'resource_rejected', 'Resource', resource.id, {'title': resource.title, 'reason': reason}, request)
             
             # Create notification for the student
             from notifications.models import Notification, NotificationType

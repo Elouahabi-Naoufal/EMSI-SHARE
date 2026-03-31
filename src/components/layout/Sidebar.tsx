@@ -60,11 +60,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) => {
   const navigationItems = [
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Resources', href: '/resources', icon: FileText },
-    ...(user?.role === 'teacher' ? [
+    ...(user?.role === 'teacher' || user?.role === 'librarian' || user?.role === 'counselor' || user?.role === 'coordinator' || user?.role === 'staff' ? [
       { name: 'My Rooms', href: '/rooms', icon: DoorOpen },
     ] : []),
     ...(user?.role === 'student' ? [
       { name: 'My Rooms', href: '/student-rooms', icon: DoorOpen },
+      { name: 'Course Catalog', href: '/catalog', icon: BookOpen },
+    ] : []),
+    ...(user?.role === 'parent' ? [
+      { name: 'Parent Portal', href: '/parent', icon: Users },
     ] : []),
     { name: 'Assignments', href: '/assignments', icon: ClipboardList },
     { name: 'Gradebook', href: '/gradebook', icon: BookMarked },
@@ -75,15 +79,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) => {
     { name: 'Announcements', href: '/announcements', icon: Megaphone },
     { name: 'Academic Calendar', href: '/calendar', icon: BookOpen },
     { name: 'Messages', href: '/messages', icon: Mail },
-    { name: 'Certificates', href: '/certificates', icon: Award },
-    { name: 'Progress Report', href: '/progress', icon: BarChart },
-    ...(user?.role === 'parent' ? [
-      { name: 'Parent Portal', href: '/parent', icon: Users },
-    ] : []),
-    ...(user?.role === 'student' ? [
-      { name: 'Course Catalog', href: '/catalog', icon: BookOpen },
-    ] : []),
-    { name: 'Security (2FA)', href: '/2fa', icon: Shield },
     ...(user?.role === 'admin' || user?.role === 'administration' ? [
       { name: 'Users', href: '/users', icon: Users },
       { name: 'Bulk Import', href: '/bulk-import', icon: Upload },
@@ -120,7 +115,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) => {
         </div>
       </div>
       
-      <nav className="flex-1 px-2 space-y-1">
+      <nav className="flex-1 px-2 space-y-1 overflow-y-auto">
         {navigationItems.map((item) => {
           const isActive = location.pathname === item.href;
           

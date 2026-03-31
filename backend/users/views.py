@@ -76,6 +76,8 @@ class AdminUserCreateView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+        from audit_logs.utils import log_action
+        log_action(request.user, 'user_created', 'User', user.id, {'email': user.email, 'role': user.role}, request)
         return Response({
             'id': user.id,
             'username': user.username,
@@ -101,6 +103,8 @@ class UserDeleteView(views.APIView):
                 return Response({'detail': 'You cannot delete your own account.'},
                                 status=status.HTTP_400_BAD_REQUEST)
             user_to_delete.delete()
+            from audit_logs.utils import log_action
+            log_action(request.user, 'user_deleted', 'User', user_id, {'email': user_to_delete.email}, request)
             return Response({'detail': 'User deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
         except User.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
@@ -322,6 +326,8 @@ class BulkUserImportView(views.APIView):
             except Exception as e:
                 errors.append({'row': i, 'error': str(e)})
 
+        from audit_logs.utils import log_action
+        log_action(request.user, 'bulk_import', 'User', None, {'created': len(created), 'skipped': len(skipped), 'errors': len(errors)}, request)
         return Response({'created': len(created), 'skipped': len(skipped), 'errors': errors,
                          'created_emails': created, 'skipped_emails': skipped})
 

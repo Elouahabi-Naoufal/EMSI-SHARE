@@ -36,7 +36,10 @@ class GradeEntryViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        entry = serializer.save(created_by=self.request.user)
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'grade_added', 'GradeEntry', entry.id,
+                   {'student': entry.student.email, 'title': entry.title, 'score': entry.score}, self.request)
 
     @action(detail=False, methods=['get'], url_path='summary')
     def summary(self, request):
