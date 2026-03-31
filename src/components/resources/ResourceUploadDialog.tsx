@@ -218,7 +218,7 @@ const ResourceUploadDialog: React.FC<ResourceUploadDialogProps> = ({
           throw new Error('Authentication token not found. Please log in again.');
         }
         
-        const response = await fetch('http://127.0.0.1:8000/api/resources/', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/resources/`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -239,7 +239,7 @@ const ResourceUploadDialog: React.FC<ResourceUploadDialogProps> = ({
             }
             
             // Try to refresh the token
-            const refreshResponse = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
+            const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/token/refresh/`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

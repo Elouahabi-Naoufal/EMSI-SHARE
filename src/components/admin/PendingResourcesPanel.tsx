@@ -44,7 +44,7 @@ const PendingResourcesPanel: React.FC = () => {
   const fetchPendingResources = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/resources/?status=pending', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/resources/?status=pending`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('emsi_access')}`
         }

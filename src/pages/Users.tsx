@@ -616,7 +616,7 @@ const Users: React.FC = () => {
                           // Send the request directly using fetch for multipart/form-data
                           const token = document.cookie.split('; ').find(row => row.startsWith('emsi_access='))?.split('=')[1];
                           
-                          fetch(`http://127.0.0.1:8000/api/users/${selectedUser.id}/update/`, {
+                          fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/users/${selectedUser.id}/update/`, {
                             method: 'POST',
                             headers: token ? { 
                               'Authorization': `Bearer ${token}`

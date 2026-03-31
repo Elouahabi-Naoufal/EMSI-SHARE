@@ -1,7 +1,9 @@
 {
   "name": "emsi-share-learn",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "EMSI Share Learn — Collaborative Learning Platform",
+  "author": "Naoufal Elouahabi <naoufal.elouahabi@emsi-edu.ma>",
   "type": "module",
   "scripts": {
     "dev": "vite",

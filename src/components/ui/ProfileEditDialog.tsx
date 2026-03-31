@@ -29,7 +29,7 @@ const ProfileForm: React.FC = () => {
         const token = document.cookie.split('; ').find(row => row.startsWith('emsi_access='))?.split('=')[1];
         
         // Upload to database endpoint
-        const res = await fetch('http://127.0.0.1:8000/api/auth/profile/picture/upload/', {
+        const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/auth/profile/picture/upload/`, {
           method: 'POST',
           headers: token ? { Authorization: `Bearer ${token}` } : {},
           body: formData,
@@ -56,7 +56,7 @@ const ProfileForm: React.FC = () => {
     setPasswordLoading(true);
     try {
       const token = document.cookie.split('; ').find(row => row.startsWith('emsi_access='))?.split('=')[1];
-      const res = await fetch('http://127.0.0.1:8000/api/auth/change-password/', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/auth/change-password/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ new_password: password }),

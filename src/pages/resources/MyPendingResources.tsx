@@ -63,7 +63,7 @@ const MyPendingResources: React.FC = () => {
         // Log the token being used (first 10 chars only for security)
         console.log('Using token (first 10 chars):', token.substring(0, 10) + '...');
         
-        const response = await fetch('http://127.0.0.1:8000/api/resources/?my=true', {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/resources/?my=true`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -82,7 +82,7 @@ const MyPendingResources: React.FC = () => {
             }
             
             // Try to refresh the token
-            const refreshResponse = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
+            const refreshResponse = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/token/refresh/`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -199,7 +199,7 @@ const MyPendingResources: React.FC = () => {
           throw new Error('Authentication token not found');
         }
         
-        const response = await fetch(`http://127.0.0.1:8000/api/resources/${resourceId}/`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/resources/${resourceId}/`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
