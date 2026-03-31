@@ -43,6 +43,9 @@ class UserBadgeViewSet(viewsets.ReadOnlyModelViewSet):
             badge = Badge.objects.get(id=badge_id)
             user = User.objects.get(id=user_id)
             ub, created = UserBadge.objects.get_or_create(user=user, badge=badge)
+            if created:
+                from audit_logs.utils import log_action
+                log_action(request.user, 'badge_awarded', 'Badge', badge.id, {'badge': badge.name, 'to': user.email}, request)
             return Response(UserBadgeSerializer(ub).data, status=201 if created else 200)
         except (Badge.DoesNotExist, User.DoesNotExist):
             return Response({'error': 'Badge or user not found'}, status=404)
@@ -67,3 +70,8 @@ class CertificateViewSet(viewsets.ModelViewSet):
         log_action(self.request.user, 'certificate_issued', 'Certificate', cert.id,
                    {'student': cert.student.email, 'room': cert.room.name},
                    self.request)
+
+    def perform_destroy(self, instance):
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'certificate_deleted', 'Certificate', instance.id, {'student': instance.student.email, 'room': instance.room.name}, self.request)
+        instance.delete()

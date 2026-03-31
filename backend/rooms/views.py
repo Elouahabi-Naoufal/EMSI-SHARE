@@ -30,6 +30,16 @@ class RoomViewSet(viewsets.ModelViewSet):
             return Room.objects.all().order_by('created_at')
         return Room.objects.none()
 
+    def perform_create(self, serializer):
+        room = serializer.save()
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'room_created', 'Room', room.id, {'name': room.name}, self.request)
+
+    def perform_destroy(self, instance):
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'room_deleted', 'Room', instance.id, {'name': instance.name}, self.request)
+        instance.delete()
+
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return RoomDetailSerializer
@@ -78,6 +88,8 @@ class RoomViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Enrollment request submitted. Awaiting teacher approval.'}, status=status.HTTP_200_OK)
 
         RoomParticipant.objects.create(user=request.user, room=room, enrollment_status='enrolled')
+        from audit_logs.utils import log_action
+        log_action(request.user, 'room_joined', 'Room', room.id, {'room': room.name}, request)
         return Response({'message': 'Successfully joined the room'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path='enrollment-requests')
@@ -101,6 +113,9 @@ class RoomViewSet(viewsets.ModelViewSet):
             participant = RoomParticipant.objects.get(id=participant_id, room=room)
             participant.enrollment_status = 'enrolled' if action_type == 'approve' else 'rejected'
             participant.save()
+            from audit_logs.utils import log_action
+            log_action(request.user, 'enrollment_approved' if action_type == 'approve' else 'enrollment_rejected',
+                       'Room', room.id, {'user': participant.user.email, 'room': room.name}, request)
             return Response({'message': f'Enrollment {action_type}d successfully.'})
         except RoomParticipant.DoesNotExist:
             return Response({'error': 'Participant not found'}, status=404)
@@ -111,6 +126,8 @@ class RoomViewSet(viewsets.ModelViewSet):
         try:
             participant = RoomParticipant.objects.get(user=request.user, room=room)
             participant.delete()
+            from audit_logs.utils import log_action
+            log_action(request.user, 'room_left', 'Room', room.id, {'room': room.name}, request)
             return Response({'message': 'Successfully left the room'}, status=status.HTTP_200_OK)
         except RoomParticipant.DoesNotExist:
             return Response({'error': 'You are not a participant in this room'}, status=status.HTTP_400_BAD_REQUEST)

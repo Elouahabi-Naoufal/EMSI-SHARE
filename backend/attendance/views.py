@@ -29,6 +29,8 @@ class AttendanceSessionViewSet(viewsets.ModelViewSet):
                 student_id=r['student_id'],
                 defaults={'status': r.get('status', 'present'), 'note': r.get('note', ''), 'marked_by': request.user}
             )
+        from audit_logs.utils import log_action
+        log_action(request.user, 'attendance_marked', 'AttendanceSession', session.id, {'session': session.title, 'room': session.room.name, 'count': len(records)}, request)
         return Response({'detail': 'Attendance saved.'})
 
     @action(detail=False, methods=['get'], url_path='student-summary')

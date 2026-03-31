@@ -32,4 +32,11 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        ann = serializer.save(created_by=self.request.user)
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'announcement_created', 'Announcement', ann.id, {'title': ann.title, 'target': ann.target_type}, self.request)
+
+    def perform_destroy(self, instance):
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'announcement_deleted', 'Announcement', instance.id, {'title': instance.title}, self.request)
+        instance.delete()

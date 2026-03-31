@@ -222,6 +222,8 @@ class AdminUserUpdateView(views.APIView):
             if request.FILES.get('profile_picture'):
                 u.profile_picture = request.FILES['profile_picture'].read()
             u.save()
+            from audit_logs.utils import log_action
+            log_action(request.user, 'user_updated', 'User', u.id, {'email': u.email, 'role': u.role}, request)
             return Response({
                 'id': u.id, 'username': u.username, 'email': u.email,
                 'first_name': u.first_name, 'last_name': u.last_name,
@@ -280,6 +282,8 @@ class ResetPasswordView(views.APIView):
         token.user.save()
         token.used = True
         token.save()
+        from audit_logs.utils import log_action
+        log_action(token.user, 'password_reset', 'User', token.user.id, {}, request)
         return Response({'detail': 'Password reset successfully.'})
 
 
@@ -374,6 +378,8 @@ class DataExportView(views.APIView):
             'uploaded_resources': list(user.uploaded_resources.values('title', 'type', 'uploaded_at')),
             'notifications': list(user.notifications.values('title', 'message', 'created_at')),
         }
+        from audit_logs.utils import log_action
+        log_action(user, 'data_exported', 'User', user.id, {}, request)
         response = HttpResponse(json.dumps(data, indent=2, default=str), content_type='application/json')
         response['Content-Disposition'] = f'attachment; filename="my_data_{user.id}.json"'
         return response
@@ -461,11 +467,15 @@ class TwoFactorSetupView(views.APIView):
         if action == 'enable':
             user.totp_enabled = True
             user.save(update_fields=['totp_enabled'])
+            from audit_logs.utils import log_action
+            log_action(user, '2fa_enabled', 'User', user.id, {}, request)
             return Response({'detail': '2FA enabled successfully.'})
         elif action == 'disable':
             user.totp_enabled = False
             user.totp_secret = None
             user.save(update_fields=['totp_enabled', 'totp_secret'])
+            from audit_logs.utils import log_action
+            log_action(user, '2fa_disabled', 'User', user.id, {}, request)
             return Response({'detail': '2FA disabled.'})
         return Response({'detail': 'Invalid action.'}, status=400)
 

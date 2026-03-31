@@ -43,12 +43,19 @@ class AssignmentViewSet(viewsets.ModelViewSet):
             attachment_data = f.read()
             attachment_name = f.name
             attachment_type = f.content_type
-        serializer.save(
+        assignment = serializer.save(
             created_by=self.request.user,
             attachment_data=attachment_data,
             attachment_name=attachment_name,
             attachment_type=attachment_type,
         )
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'assignment_created', 'Assignment', assignment.id, {'title': assignment.title}, self.request)
+
+    def perform_destroy(self, instance):
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'assignment_deleted', 'Assignment', instance.id, {'title': instance.title}, self.request)
+        instance.delete()
 
     @action(detail=True, methods=['get'], url_path='attachment')
     def download_attachment(self, request, pk=None):
@@ -97,13 +104,15 @@ class AssignmentSubmissionViewSet(viewsets.ModelViewSet):
         now = timezone.now()
         status_val = 'late' if now > assignment.deadline else 'submitted'
 
-        serializer.save(
+        sub = serializer.save(
             student=self.request.user,
             file_data=file_data,
             file_name=file_name,
             file_type=file_type,
             status=status_val,
         )
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'assignment_submitted', 'Assignment', sub.assignment.id, {'assignment': sub.assignment.title}, self.request)
 
     @action(detail=True, methods=['post'], url_path='grade')
     def grade(self, request, pk=None):

@@ -65,3 +65,8 @@ class GradeEntryViewSet(viewsets.ModelViewSet):
             if s['entries']:
                 s['average'] = round(sum(x['percentage'] for x in s['entries']) / len(s['entries']), 2)
         return Response(list(students.values()))
+
+    def perform_destroy(self, instance):
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'grade_deleted', 'GradeEntry', instance.id, {'title': instance.title, 'student': instance.student.email}, self.request)
+        instance.delete()

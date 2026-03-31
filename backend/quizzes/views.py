@@ -60,6 +60,16 @@ class QuizViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             self.permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         return super().get_permissions()
+
+    def perform_create(self, serializer):
+        quiz = serializer.save()
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'quiz_created', 'Quiz', quiz.id, {'title': quiz.title}, self.request)
+
+    def perform_destroy(self, instance):
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'quiz_deleted', 'Quiz', instance.id, {'title': instance.title}, self.request)
+        instance.delete()
     
     @action(detail=True, methods=['post'], url_path='submit')
     def submit_quiz(self, request, pk=None):
@@ -125,6 +135,8 @@ class QuizViewSet(viewsets.ModelViewSet):
             attempt.score = score
             attempt.status = 'completed'
             attempt.save()
+            from audit_logs.utils import log_action
+            log_action(request.user, 'quiz_submitted', 'Quiz', quiz.id, {'title': quiz.title, 'score': round(score, 1)}, request)
             
             # Return the results
             result_serializer = QuizResultSerializer(attempt)
@@ -199,6 +211,8 @@ class QuizViewSet(viewsets.ModelViewSet):
             )
         quiz.is_active = not quiz.is_active
         quiz.save()
+        from audit_logs.utils import log_action
+        log_action(request.user, 'quiz_toggled', 'Quiz', quiz.id, {'title': quiz.title, 'is_active': quiz.is_active}, request)
         serializer = self.get_serializer(quiz)
         return Response(serializer.data)
         

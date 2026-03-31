@@ -70,8 +70,18 @@ class ResourceViewSet(viewsets.ModelViewSet):
             )
         
         return super().create(request, *args, **kwargs)
-    
-    @action(detail=True, methods=['get'], url_path='download')
+
+    def perform_create(self, serializer):
+        resource = serializer.save()
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'resource_uploaded', 'Resource', resource.id,
+                   {'title': resource.title, 'type': resource.type}, self.request)
+
+    def perform_destroy(self, instance):
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'resource_deleted', 'Resource', instance.id,
+                   {'title': instance.title}, self.request)
+        instance.delete()
     def download(self, request, pk=None):
         try:
             resource = Resource.objects.get(pk=pk)
@@ -86,7 +96,8 @@ class ResourceViewSet(viewsets.ModelViewSet):
                 filename = resource.file_name or f"resource_{resource.id}"
                 response['Content-Disposition'] = f'attachment; filename="{smart_str(filename)}"'
                 response['Content-Length'] = len(resource.file_data)
-                
+                from audit_logs.utils import log_action
+                log_action(request.user, 'resource_downloaded', 'Resource', resource.id, {'title': resource.title}, request)
                 return response
             else:
                 return Response(

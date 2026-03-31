@@ -93,8 +93,15 @@ class ForumTopicViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
-    
-    def get_queryset(self):
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'forum_topic_created', 'ForumTopic', serializer.instance.id,
+                   {'title': serializer.instance.title}, self.request)
+
+    def perform_destroy(self, instance):
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'forum_topic_deleted', 'ForumTopic', instance.id,
+                   {'title': instance.title}, self.request)
+        instance.delete()
         queryset = ForumTopic.objects.all()
         
         # Basic filters
@@ -274,7 +281,9 @@ class ForumPostViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
-        
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'forum_post_created', 'ForumPost', serializer.instance.id,
+                   {'topic': serializer.instance.topic.title}, self.request)
         # Update the last_activity of the topic
         topic = serializer.validated_data['topic']
         topic.last_activity = serializer.instance.created_at

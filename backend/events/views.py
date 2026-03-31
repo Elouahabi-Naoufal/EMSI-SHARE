@@ -164,6 +164,16 @@ class EventViewSet(viewsets.ModelViewSet):
         if self.action in ['update', 'partial_update', 'destroy']:
             self.permission_classes = [permissions.IsAuthenticated, EventPermission]
         return super().get_permissions()
+
+    def perform_create(self, serializer):
+        event = serializer.save()
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'event_created', 'Event', event.id, {'title': event.title}, self.request)
+
+    def perform_destroy(self, instance):
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'event_deleted', 'Event', instance.id, {'title': instance.title}, self.request)
+        instance.delete()
     
     @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
     def attend(self, request, pk=None):
@@ -202,6 +212,8 @@ class EventViewSet(viewsets.ModelViewSet):
         )
         
         serializer = EventAttendeeSerializer(attendance)
+        from audit_logs.utils import log_action
+        log_action(request.user, 'event_attended', 'Event', event.id, {'title': event.title, 'status': status_value}, request)
         return Response(serializer.data)
     
     @action(detail=True, methods=['post'])

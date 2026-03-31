@@ -33,12 +33,14 @@ class MessageViewSet(viewsets.ModelViewSet):
             attachment_data = f.read()
             attachment_name = f.name
             attachment_type = f.content_type
-        serializer.save(
+        msg = serializer.save(
             sender=self.request.user,
             attachment_data=attachment_data,
             attachment_name=attachment_name,
             attachment_type=attachment_type,
         )
+        from audit_logs.utils import log_action
+        log_action(self.request.user, 'message_sent', 'Message', msg.id, {'to': msg.recipient.email, 'subject': msg.subject or ''}, self.request)
 
     @action(detail=True, methods=['post'], url_path='read')
     def mark_read(self, request, pk=None):
