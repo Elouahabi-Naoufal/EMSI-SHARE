@@ -1,0 +1,77 @@
+{
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "resources": "Ressources",
+    "assignments": "Devoirs",
+    "gradebook": "Carnet de notes",
+    "attendance": "Présences",
+    "timetable": "Emploi du temps",
+    "forum": "Forum",
+    "events": "Événements",
+    "announcements": "Annonces",
+    "calendar": "Calendrier académique",
+    "messages": "Messages",
+    "certificates": "Certificats",
+    "users": "Utilisateurs",
+    "settings": "Paramètres",
+    "rooms": "Mes salles",
+    "auditLogs": "Journaux d'audit",
+    "bulkImport": "Import en masse"
+  },
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "loading": "Chargement...",
+    "noData": "Aucune donnée trouvée.",
+    "search": "Rechercher",
+    "submit": "Soumettre",
+    "back": "Retour",
+    "export": "Exporter",
+    "upload": "Téléverser",
+    "download": "Télécharger"
+  },
+  "auth": {
+    "signIn": "Se connecter",
+    "signUp": "Créer un compte",
+    "signOut": "Se déconnecter",
+    "email": "Email",
+    "password": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "noAccount": "Pas encore de compte ?",
+    "hasAccount": "Déjà un compte ?",
+    "role": "Je suis",
+    "student": "Étudiant",
+    "teacher": "Enseignant"
+  },
+  "dashboard": {
+    "welcome": "Bienvenue, {{name}}",
+    "subtitle": "Voici ce qui se passe avec votre compte aujourd'hui."
+  },
+  "assignments": {
+    "title": "Devoirs",
+    "new": "Nouveau devoir",
+    "deadline": "Date limite",
+    "maxScore": "Note maximale",
+    "submit": "Soumettre",
+    "grade": "Noter",
+    "submissions": "Soumissions",
+    "status": {
+      "submitted": "Soumis",
+      "late": "En retard",
+      "graded": "Noté",
+      "missing": "Manquant",
+      "returned": "Rendu"
+    }
+  },
+  "attendance": {
+    "title": "Présences",
+    "present": "Présent",
+    "absent": "Absent",
+    "late": "En retard",
+    "excused": "Excusé",
+    "rate": "Taux de présence"
+  }
+}

@@ -16,7 +16,9 @@ class Room(models.Model):
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL, through='RoomParticipant', related_name='joined_rooms')
     is_active = models.BooleanField(default=True)
     is_private = models.BooleanField(default=False)
+    enrollment_open = models.BooleanField(default=True)
     max_participants = models.IntegerField(null=True, blank=True)
+    prerequisites = models.ManyToManyField('self', blank=True, symmetrical=False, related_name='required_for')
     room_image = models.ImageField(upload_to='room_images/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -30,17 +32,24 @@ class RoomParticipant(models.Model):
         ('moderator', 'Moderator'),
         ('assistant', 'Assistant'),
     ]
-    
+    ENROLLMENT_STATUS = [
+        ('enrolled', 'Enrolled'),
+        ('waitlisted', 'Waitlisted'),
+        ('pending', 'Pending Approval'),
+        ('rejected', 'Rejected'),
+    ]
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student')
+    enrollment_status = models.CharField(max_length=10, choices=ENROLLMENT_STATUS, default='enrolled')
     joined_at = models.DateTimeField(auto_now_add=True)
     is_muted = models.BooleanField(default=False)
     is_banned = models.BooleanField(default=False)
-    
+
     class Meta:
         unique_together = ['user', 'room']
-        
+
     def __str__(self):
         return f"{self.user.username} in {self.room.name}"
 

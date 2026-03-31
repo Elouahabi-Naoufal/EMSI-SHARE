@@ -13,11 +13,12 @@ export interface User {
 
 export const STAFF_ROLES = ['teacher', 'librarian', 'counselor', 'coordinator', 'staff'] as const;
 export const ADMIN_ROLES = ['admin', 'administration'] as const;
-export const ALL_ROLES = ['student', ...STAFF_ROLES, ...ADMIN_ROLES] as const;
+export const ALL_ROLES = ['student', 'parent', ...STAFF_ROLES, ...ADMIN_ROLES] as const;
 export type UserRole = typeof ALL_ROLES[number];
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   student: 'Student',
+  parent: 'Parent/Guardian',
   teacher: 'Teacher',
   librarian: 'Librarian',
   counselor: 'Counselor',

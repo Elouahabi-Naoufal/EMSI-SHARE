@@ -21,7 +21,7 @@ type User = {
   id: string;
   name: string;
   email: string;
-  role: 'student' | 'teacher' | 'librarian' | 'counselor' | 'coordinator' | 'staff' | 'admin' | 'administration';
+  role: 'student' | 'teacher' | 'librarian' | 'counselor' | 'coordinator' | 'staff' | 'admin' | 'administration' | 'parent';
   avatar?: string;
   profilePicture?: string;
   staff_title?: string;

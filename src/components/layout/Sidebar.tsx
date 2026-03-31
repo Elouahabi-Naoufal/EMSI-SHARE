@@ -76,6 +76,14 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) => {
     { name: 'Academic Calendar', href: '/calendar', icon: BookOpen },
     { name: 'Messages', href: '/messages', icon: Mail },
     { name: 'Certificates', href: '/certificates', icon: Award },
+    { name: 'Progress Report', href: '/progress', icon: BarChart },
+    ...(user?.role === 'parent' ? [
+      { name: 'Parent Portal', href: '/parent', icon: Users },
+    ] : []),
+    ...(user?.role === 'student' ? [
+      { name: 'Course Catalog', href: '/catalog', icon: BookOpen },
+    ] : []),
+    { name: 'Security (2FA)', href: '/2fa', icon: Shield },
     ...(user?.role === 'admin' || user?.role === 'administration' ? [
       { name: 'Users', href: '/users', icon: Users },
       { name: 'Bulk Import', href: '/bulk-import', icon: Upload },

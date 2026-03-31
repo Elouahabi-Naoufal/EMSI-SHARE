@@ -15,6 +15,7 @@ import { LogOut, Settings, User } from 'lucide-react';
 import NotificationDropdown from './NotificationDropdown';
 import { Link, useNavigate } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 
 const DEFAULT_AVATAR = "/placeholder.svg";
 
@@ -38,6 +39,7 @@ const Header: React.FC = () => {
         </Link>
       </div>
       <div className="flex items-center space-x-4">
+        <LanguageSwitcher />
         <ThemeToggle />
         <NotificationDropdown />
         <DropdownMenu>

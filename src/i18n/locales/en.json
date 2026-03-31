@@ -1,0 +1,77 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "resources": "Resources",
+    "assignments": "Assignments",
+    "gradebook": "Gradebook",
+    "attendance": "Attendance",
+    "timetable": "Timetable",
+    "forum": "Forum",
+    "events": "Events",
+    "announcements": "Announcements",
+    "calendar": "Academic Calendar",
+    "messages": "Messages",
+    "certificates": "Certificates",
+    "users": "Users",
+    "settings": "Settings",
+    "rooms": "My Rooms",
+    "auditLogs": "Audit Logs",
+    "bulkImport": "Bulk Import"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "loading": "Loading...",
+    "noData": "No data found.",
+    "search": "Search",
+    "submit": "Submit",
+    "back": "Back",
+    "export": "Export",
+    "upload": "Upload",
+    "download": "Download"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Create Account",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "role": "I am a",
+    "student": "Student",
+    "teacher": "Teacher"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}",
+    "subtitle": "Here's what's happening with your account today."
+  },
+  "assignments": {
+    "title": "Assignments",
+    "new": "New Assignment",
+    "deadline": "Deadline",
+    "maxScore": "Max Score",
+    "submit": "Submit",
+    "grade": "Grade",
+    "submissions": "Submissions",
+    "status": {
+      "submitted": "Submitted",
+      "late": "Late",
+      "graded": "Graded",
+      "missing": "Missing",
+      "returned": "Returned"
+    }
+  },
+  "attendance": {
+    "title": "Attendance",
+    "present": "Present",
+    "absent": "Absent",
+    "late": "Late",
+    "excused": "Excused",
+    "rate": "Attendance Rate"
+  }
+}

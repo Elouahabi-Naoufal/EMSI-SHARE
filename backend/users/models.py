@@ -17,9 +17,10 @@ class User(AbstractUser):
         # Management roles
         ('admin', 'Admin'),
         ('administration', 'Administration'),
+        # Guardian role
+        ('parent', 'Parent/Guardian'),
     ]
 
-    # Roles that count as staff (non-student, non-admin)
     STAFF_ROLES = ['teacher', 'librarian', 'counselor', 'coordinator', 'staff']
     ADMIN_ROLES = ['admin', 'administration']
     PRIVILEGED_ROLES = STAFF_ROLES + ADMIN_ROLES
@@ -35,6 +36,8 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
     last_activity = models.DateTimeField(auto_now=True)
     profile_picture = models.BinaryField(null=True, blank=True)
+    totp_secret = models.CharField(max_length=32, blank=True, null=True)
+    totp_enabled = models.BooleanField(default=False)
 
     @property
     def is_staff_member(self):
@@ -113,3 +116,21 @@ class EmailVerificationToken(models.Model):
 
     def __str__(self):
         return f"Verification token for {self.user.email}"
+
+
+class ParentStudentLink(models.Model):
+    RELATIONSHIP_CHOICES = [
+        ('parent', 'Parent'),
+        ('guardian', 'Guardian'),
+        ('other', 'Other'),
+    ]
+    parent = models.ForeignKey(User, on_delete=models.CASCADE, related_name='children_links')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='parent_links')
+    relationship = models.CharField(max_length=10, choices=RELATIONSHIP_CHOICES, default='parent')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['parent', 'student']
+
+    def __str__(self):
+        return f"{self.parent.email} -> {self.student.email}"

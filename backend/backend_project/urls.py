@@ -26,7 +26,7 @@ router.register(r'forums/posts', ForumPostViewSet)
 router.register(r'forums/attachments', ForumAttachmentViewSet)
 router.register(r'notifications', NotificationViewSet, basename='notification')
 
-from users.views import UserDeleteView, AdminUserCreateView, AdminUserUpdateView, ForgotPasswordView, ResetPasswordView, BulkUserImportView, EmailVerificationView, DataExportView
+from users.views import UserDeleteView, AdminUserCreateView, AdminUserUpdateView, ForgotPasswordView, ResetPasswordView, BulkUserImportView, EmailVerificationView, DataExportView, StudentProgressReportView, TwoFactorSetupView, TwoFactorVerifyView, ParentPortalView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -50,6 +50,11 @@ urlpatterns = [
     path('api/auth/reset-password/', ResetPasswordView.as_view(), name='reset_password'),
     path('api/auth/verify-email/', EmailVerificationView.as_view(), name='verify_email'),
     path('api/auth/export-data/', DataExportView.as_view(), name='export_data'),
+    path('api/auth/progress/', StudentProgressReportView.as_view(), name='my_progress'),
+    path('api/auth/progress/<int:student_id>/', StudentProgressReportView.as_view(), name='student_progress'),
+    path('api/auth/2fa/setup/', TwoFactorSetupView.as_view(), name='2fa_setup'),
+    path('api/auth/2fa/verify/', TwoFactorVerifyView.as_view(), name='2fa_verify'),
+    path('api/auth/parent/', ParentPortalView.as_view(), name='parent_portal'),
     path('api/users/', UserListView.as_view(), name='users'),
     path('api/users/create/', AdminUserCreateView.as_view(), name='user_create'),
     path('api/users/bulk-import/', BulkUserImportView.as_view(), name='bulk_import'),

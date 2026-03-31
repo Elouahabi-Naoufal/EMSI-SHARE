@@ -41,6 +41,10 @@ import AcademicCalendar from "./pages/calendar/AcademicCalendar";
 import Certificates from "./pages/certificates/Certificates";
 import AuditLogs from "./pages/admin/AuditLogs";
 import BulkImport from "./pages/admin/BulkImport";
+import ProgressReport from "./pages/ProgressReport";
+import ParentPortal from "./pages/ParentPortal";
+import TwoFactorSettings from "./pages/TwoFactorSettings";
+import CourseCatalog from "./pages/CourseCatalog";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +90,10 @@ const App = () => (
               <Route path="/certificates" element={<Certificates />} />
               <Route path="/audit-logs" element={<AuditLogs />} />
               <Route path="/bulk-import" element={<BulkImport />} />
+              <Route path="/progress" element={<ProgressReport />} />
+              <Route path="/parent" element={<ParentPortal />} />
+              <Route path="/2fa" element={<TwoFactorSettings />} />
+              <Route path="/catalog" element={<CourseCatalog />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

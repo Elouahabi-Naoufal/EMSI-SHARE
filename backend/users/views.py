@@ -9,7 +9,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.mail import send_mail
 from django.http import HttpResponse
 import base64, csv, io
-from .models import PasswordResetToken, EmailVerificationToken
+from .models import PasswordResetToken, EmailVerificationToken, ParentStudentLink
 from platform_settings.models import PlatformSettings
 
 User = get_user_model()
@@ -371,3 +371,164 @@ class DataExportView(views.APIView):
         response = HttpResponse(json.dumps(data, indent=2, default=str), content_type='application/json')
         response['Content-Disposition'] = f'attachment; filename="my_data_{user.id}.json"'
         return response
+
+
+class StudentProgressReportView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, student_id=None):
+        target_id = student_id or request.user.id
+        if str(target_id) != str(request.user.id) and request.user.role not in ['teacher', 'admin', 'administration']:
+            return Response({'detail': 'Permission denied.'}, status=403)
+        try:
+            student = User.objects.get(id=target_id)
+        except User.DoesNotExist:
+            return Response({'detail': 'Student not found.'}, status=404)
+
+        from quizzes.models import QuizAttempt
+        from assignments.models import AssignmentSubmission
+        from attendance.models import AttendanceRecord
+        from gradebook.models import GradeEntry
+
+        attempts = QuizAttempt.objects.filter(student=student, status='completed')
+        quiz_avg = round(sum(a.score for a in attempts if a.score) / attempts.count(), 1) if attempts.exists() else 0
+
+        submissions = AssignmentSubmission.objects.filter(student=student)
+        graded = submissions.filter(status='graded')
+        grade_avg = round(sum(s.score for s in graded if s.score) / graded.count(), 1) if graded.exists() else 0
+
+        records = AttendanceRecord.objects.filter(student=student)
+        total_sessions = records.count()
+        present = records.filter(status__in=['present', 'late']).count()
+        attendance_rate = round((present / total_sessions) * 100, 1) if total_sessions > 0 else 0
+
+        grade_entries = GradeEntry.objects.filter(student=student)
+        grade_entry_avg = round(sum(g.percentage for g in grade_entries) / grade_entries.count(), 1) if grade_entries.exists() else 0
+
+        return Response({
+            'student': {
+                'id': student.id,
+                'name': f"{student.first_name} {student.last_name}".strip() or student.email,
+                'email': student.email,
+                'role': student.role,
+            },
+            'quizzes': {'total_attempts': attempts.count(), 'average_score': quiz_avg},
+            'assignments': {'total_submitted': submissions.count(), 'total_graded': graded.count(), 'average_score': grade_avg},
+            'attendance': {'total_sessions': total_sessions, 'present': present, 'rate': attendance_rate},
+            'grades': {'total_entries': grade_entries.count(), 'average': grade_entry_avg},
+            'forum': {'posts': student.forum_posts.count(), 'topics': student.created_topics.count()},
+            'resources_uploaded': student.uploaded_resources.count(),
+        })
+
+
+class TwoFactorSetupView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        import pyotp, qrcode, io as _io
+        user = request.user
+        if not user.totp_secret:
+            user.totp_secret = pyotp.random_base32()
+            user.save(update_fields=['totp_secret'])
+        totp = pyotp.TOTP(user.totp_secret)
+        uri = totp.provisioning_uri(name=user.email, issuer_name='Platform')
+        img = qrcode.make(uri)
+        buf = _io.BytesIO()
+        img.save(buf, format='PNG')
+        qr_b64 = base64.b64encode(buf.getvalue()).decode()
+        return Response({
+            'secret': user.totp_secret,
+            'qr_code': f'data:image/png;base64,{qr_b64}',
+            'enabled': user.totp_enabled,
+        })
+
+    def post(self, request):
+        import pyotp
+        user = request.user
+        code = request.data.get('code', '')
+        action = request.data.get('action', 'enable')
+        if not user.totp_secret:
+            return Response({'detail': 'Setup not started.'}, status=400)
+        totp = pyotp.TOTP(user.totp_secret)
+        if not totp.verify(code, valid_window=1):
+            return Response({'detail': 'Invalid code.'}, status=400)
+        if action == 'enable':
+            user.totp_enabled = True
+            user.save(update_fields=['totp_enabled'])
+            return Response({'detail': '2FA enabled successfully.'})
+        elif action == 'disable':
+            user.totp_enabled = False
+            user.totp_secret = None
+            user.save(update_fields=['totp_enabled', 'totp_secret'])
+            return Response({'detail': '2FA disabled.'})
+        return Response({'detail': 'Invalid action.'}, status=400)
+
+
+class TwoFactorVerifyView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        import pyotp
+        email = request.data.get('email', '')
+        code = request.data.get('code', '')
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'detail': 'Invalid credentials.'}, status=400)
+        if not user.totp_enabled or not user.totp_secret:
+            return Response({'detail': '2FA not enabled for this user.'}, status=400)
+        totp = pyotp.TOTP(user.totp_secret)
+        if not totp.verify(code, valid_window=1):
+            return Response({'detail': 'Invalid 2FA code.'}, status=400)
+        return Response({'detail': '2FA verified.', 'verified': True})
+
+
+class ParentPortalView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != 'parent':
+            return Response({'detail': 'Only parents can access this endpoint.'}, status=403)
+        links = ParentStudentLink.objects.filter(parent=request.user).select_related('student')
+        children = []
+        for link in links:
+            student = link.student
+            from quizzes.models import QuizAttempt
+            from assignments.models import AssignmentSubmission
+            from attendance.models import AttendanceRecord
+            attempts = QuizAttempt.objects.filter(student=student, status='completed')
+            quiz_avg = round(sum(a.score for a in attempts if a.score) / attempts.count(), 1) if attempts.exists() else 0
+            records = AttendanceRecord.objects.filter(student=student)
+            total = records.count()
+            present = records.filter(status__in=['present', 'late']).count()
+            att_rate = round((present / total) * 100, 1) if total > 0 else 0
+            pending_assignments = AssignmentSubmission.objects.filter(
+                student=student, status__in=['missing', 'late']
+            ).count()
+            children.append({
+                'student_id': student.id,
+                'name': f"{student.first_name} {student.last_name}".strip() or student.email,
+                'email': student.email,
+                'relationship': link.relationship,
+                'quiz_average': quiz_avg,
+                'attendance_rate': att_rate,
+                'pending_assignments': pending_assignments,
+            })
+        return Response(children)
+
+    def post(self, request):
+        if request.user.role not in ['admin', 'administration']:
+            return Response({'detail': 'Only admins can link parents to students.'}, status=403)
+        parent_id = request.data.get('parent_id')
+        student_id = request.data.get('student_id')
+        relationship = request.data.get('relationship', 'parent')
+        try:
+            parent = User.objects.get(id=parent_id, role='parent')
+            student = User.objects.get(id=student_id, role='student')
+            link, created = ParentStudentLink.objects.get_or_create(
+                parent=parent, student=student,
+                defaults={'relationship': relationship}
+            )
+            return Response({'detail': 'Linked successfully.' if created else 'Already linked.'})
+        except User.DoesNotExist:
+            return Response({'detail': 'Parent or student not found.'}, status=404)

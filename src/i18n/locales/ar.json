@@ -1,0 +1,77 @@
+{
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "resources": "الموارد",
+    "assignments": "الواجبات",
+    "gradebook": "دفتر الدرجات",
+    "attendance": "الحضور",
+    "timetable": "الجدول الزمني",
+    "forum": "المنتدى",
+    "events": "الفعاليات",
+    "announcements": "الإعلانات",
+    "calendar": "التقويم الأكاديمي",
+    "messages": "الرسائل",
+    "certificates": "الشهادات",
+    "users": "المستخدمون",
+    "settings": "الإعدادات",
+    "rooms": "غرفي",
+    "auditLogs": "سجلات التدقيق",
+    "bulkImport": "استيراد جماعي"
+  },
+  "common": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "loading": "جاري التحميل...",
+    "noData": "لا توجد بيانات.",
+    "search": "بحث",
+    "submit": "إرسال",
+    "back": "رجوع",
+    "export": "تصدير",
+    "upload": "رفع",
+    "download": "تنزيل"
+  },
+  "auth": {
+    "signIn": "تسجيل الدخول",
+    "signUp": "إنشاء حساب",
+    "signOut": "تسجيل الخروج",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟",
+    "role": "أنا",
+    "student": "طالب",
+    "teacher": "معلم"
+  },
+  "dashboard": {
+    "welcome": "مرحباً، {{name}}",
+    "subtitle": "إليك ما يحدث في حسابك اليوم."
+  },
+  "assignments": {
+    "title": "الواجبات",
+    "new": "واجب جديد",
+    "deadline": "الموعد النهائي",
+    "maxScore": "الدرجة القصوى",
+    "submit": "تسليم",
+    "grade": "تقييم",
+    "submissions": "التسليمات",
+    "status": {
+      "submitted": "مُسلَّم",
+      "late": "متأخر",
+      "graded": "مُقيَّم",
+      "missing": "مفقود",
+      "returned": "مُعاد"
+    }
+  },
+  "attendance": {
+    "title": "الحضور",
+    "present": "حاضر",
+    "absent": "غائب",
+    "late": "متأخر",
+    "excused": "معذور",
+    "rate": "نسبة الحضور"
+  }
+}
