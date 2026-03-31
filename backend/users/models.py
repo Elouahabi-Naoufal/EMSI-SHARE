@@ -1,17 +1,33 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
+import secrets
+from django.utils import timezone
+from datetime import timedelta
 
 class User(AbstractUser):
     ROLE_CHOICES = [
         ('student', 'Student'),
         ('teacher', 'Teacher'),
+        # Staff roles
+        ('librarian', 'Librarian'),
+        ('counselor', 'Counselor'),
+        ('coordinator', 'Coordinator'),
+        ('staff', 'Staff'),
+        # Management roles
         ('admin', 'Admin'),
         ('administration', 'Administration'),
     ]
-    
+
+    # Roles that count as staff (non-student, non-admin)
+    STAFF_ROLES = ['teacher', 'librarian', 'counselor', 'coordinator', 'staff']
+    ADMIN_ROLES = ['admin', 'administration']
+    PRIVILEGED_ROLES = STAFF_ROLES + ADMIN_ROLES
+
     email = models.EmailField(_('email address'), unique=True)
-    role = models.CharField(max_length=15, choices=ROLE_CHOICES, default='student')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
+    staff_title = models.CharField(max_length=100, blank=True, null=True)  # e.g. "Head of Mathematics"
+    department = models.CharField(max_length=100, blank=True, null=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     bio = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
@@ -19,6 +35,14 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
     last_activity = models.DateTimeField(auto_now=True)
     profile_picture = models.BinaryField(null=True, blank=True)
+
+    @property
+    def is_staff_member(self):
+        return self.role in self.STAFF_ROLES
+
+    @property
+    def is_admin_member(self):
+        return self.role in self.ADMIN_ROLES
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'role']
@@ -29,11 +53,10 @@ class User(AbstractUser):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     institution = models.CharField(max_length=255, blank=True, null=True)
-    department = models.CharField(max_length=255, blank=True, null=True)
     graduation_year = models.IntegerField(null=True, blank=True)
-    skills = models.TextField(blank=True, null=True)  # JSON field for skills list
-    interests = models.TextField(blank=True, null=True)  # JSON field for interests
-    social_links = models.TextField(blank=True, null=True)  # JSON field for social media links
+    skills = models.TextField(blank=True, null=True)
+    interests = models.TextField(blank=True, null=True)
+    social_links = models.TextField(blank=True, null=True)
     timezone = models.CharField(max_length=50, default='UTC')
     language_preference = models.CharField(max_length=10, default='en')
     
@@ -52,3 +75,41 @@ class UserSettings(models.Model):
     
     def __str__(self):
         return f"{self.user.username}'s Settings"
+
+
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
+    token = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = secrets.token_urlsafe(48)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(hours=1)
+
+    def __str__(self):
+        return f"Reset token for {self.user.email}"
+
+
+class EmailVerificationToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_verification_tokens')
+    token = models.CharField(max_length=64, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = secrets.token_urlsafe(48)
+        super().save(*args, **kwargs)
+
+    @property
+    def is_expired(self):
+        return timezone.now() > self.created_at + timedelta(hours=24)
+
+    def __str__(self):
+        return f"Verification token for {self.user.email}"

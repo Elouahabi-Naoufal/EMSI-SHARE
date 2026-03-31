@@ -21,9 +21,11 @@ type User = {
   id: string;
   name: string;
   email: string;
-  role: 'student' | 'teacher' | 'admin' | 'administration';
+  role: 'student' | 'teacher' | 'librarian' | 'counselor' | 'coordinator' | 'staff' | 'admin' | 'administration';
   avatar?: string;
   profilePicture?: string;
+  staff_title?: string;
+  department?: string;
 };
 
 type AuthContextType = {
@@ -75,6 +77,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           name: `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username,
           email: userData.email,
           role: userData.role,
+          staff_title: userData.staff_title,
+          department: userData.department,
           avatar: userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.first_name || userData.email)}&background=random`,
         };
         setUser(mappedUser);
@@ -114,6 +118,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         name: `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.username,
         email: userData.email,
         role: userData.role,
+        staff_title: userData.staff_title,
+        department: userData.department,
         avatar: userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.first_name || userData.email)}&background=random`,
       };
 

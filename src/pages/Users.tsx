@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Plus } from 'lucide-react';
+import { ROLE_LABELS, ALL_ROLES, type UserRole } from '@/types/user';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { useToast } from "@/hooks/use-toast";
@@ -33,7 +34,9 @@ interface NewUserForm {
   password: string;
   first_name: string;
   last_name: string;
-  role: 'student' | 'teacher' | 'admin' | 'administration';
+  role: UserRole;
+  staff_title?: string;
+  department?: string;
   profile_picture?: string;
 }
 
@@ -53,6 +56,8 @@ const Users: React.FC = () => {
     first_name: '',
     last_name: '',
     role: 'student',
+    staff_title: '',
+    department: '',
     profile_picture: ''
   });
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
@@ -150,10 +155,7 @@ const Users: React.FC = () => {
   };
   
   const handleRoleChange = (value: string) => {
-    setNewUser(prev => ({ 
-      ...prev, 
-      role: value as 'student' | 'teacher' | 'admin' | 'administration' 
-    }));
+    setNewUser(prev => ({ ...prev, role: value as UserRole }));
   };
   
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -191,6 +193,8 @@ const Users: React.FC = () => {
         first_name: '',
         last_name: '',
         role: 'student',
+        staff_title: '',
+        department: '',
         profile_picture: ''
       });
       setProfilePicture(null);
@@ -347,21 +351,46 @@ const Users: React.FC = () => {
                           <Label htmlFor="role" className="text-right">
                             Role
                           </Label>
-                          <Select 
-                            value={newUser.role} 
+                          <Select
+                            value={newUser.role}
                             onValueChange={handleRoleChange}
                           >
                             <SelectTrigger className="col-span-3">
                               <SelectValue placeholder="Select a role" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="student">Student</SelectItem>
-                              <SelectItem value="teacher">Teacher</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="administration">Administration</SelectItem>
+                              {ALL_ROLES.map(r => (
+                                <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </div>
+                        {newUser.role !== 'student' && newUser.role !== 'admin' && newUser.role !== 'administration' && (
+                          <>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="staff_title" className="text-right">Title</Label>
+                              <Input
+                                id="staff_title"
+                                name="staff_title"
+                                value={newUser.staff_title || ''}
+                                onChange={handleInputChange}
+                                placeholder="e.g. Head of Mathematics"
+                                className="col-span-3"
+                              />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="department" className="text-right">Department</Label>
+                              <Input
+                                id="department"
+                                name="department"
+                                value={newUser.department || ''}
+                                onChange={handleInputChange}
+                                placeholder="e.g. Science"
+                                className="col-span-3"
+                              />
+                            </div>
+                          </>
+                        )}
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="profile_picture" className="text-right">
                             Profile Picture
@@ -452,7 +481,7 @@ const Users: React.FC = () => {
                         <TableCell>{`${user.first_name} ${user.last_name}`}</TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>
-                          <span className="capitalize">{user.role}</span>
+                          <span className="capitalize">{ROLE_LABELS[user.role as UserRole] || user.role}</span>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
@@ -746,10 +775,9 @@ const Users: React.FC = () => {
                                   <SelectValue placeholder="Select a role" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="student">Student</SelectItem>
-                                  <SelectItem value="teacher">Teacher</SelectItem>
-                                  <SelectItem value="admin">Admin</SelectItem>
-                                  <SelectItem value="administration">Administration</SelectItem>
+                                  {ALL_ROLES.map(r => (
+                                    <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                               <input type="hidden" id="edit_role_value" defaultValue={selectedUser.role} />

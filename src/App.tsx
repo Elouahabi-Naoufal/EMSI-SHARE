@@ -29,6 +29,15 @@ import RoomDetails from "./pages/RoomDetails";
 import Profile from "./pages/Profile";
 import Notifications from "./pages/Notifications";
 import Documentation from "./pages/Documentation";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Assignments from "./pages/assignments/Assignments";
+import Gradebook from "./pages/gradebook/Gradebook";
+import Attendance from "./pages/attendance/Attendance";
+import Timetable from "./pages/timetable/Timetable";
+import Messaging from "./pages/messaging/Messaging";
+import Announcements from "./pages/announcements/Announcements";
+import AcademicCalendar from "./pages/calendar/AcademicCalendar";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +71,15 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/documentation" element={<Documentation />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/assignments" element={<Assignments />} />
+              <Route path="/gradebook" element={<Gradebook />} />
+              <Route path="/attendance" element={<Attendance />} />
+              <Route path="/timetable" element={<Timetable />} />
+              <Route path="/messages" element={<Messaging />} />
+              <Route path="/announcements" element={<Announcements />} />
+              <Route path="/calendar" element={<AcademicCalendar />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

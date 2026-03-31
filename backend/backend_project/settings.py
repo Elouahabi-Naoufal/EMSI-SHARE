@@ -53,6 +53,13 @@ INSTALLED_APPS = [
     'notifications',
     'events',
     'platform_settings',
+    'assignments',
+    'gradebook',
+    'attendance',
+    'timetable',
+    'messaging',
+    'announcements',
+    'calendar_app',
 ]
 
 MIDDLEWARE = [

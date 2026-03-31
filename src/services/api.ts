@@ -1377,3 +1377,124 @@ export const platformAPI = {
     });
   },
 };
+
+// Assignments API
+export const assignmentsAPI = {
+  getAssignments: (params?: { room?: string }) => {
+    const q = params?.room ? `?room=${params.room}` : '';
+    return apiRequest(`/assignments/${q}`);
+  },
+  getAssignment: (id: string) => apiRequest(`/assignments/${id}/`),
+  createAssignment: (data: FormData) => {
+    const token = getAuthToken();
+    return fetch(`${API_BASE_URL}/assignments/`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: data,
+    }).then(r => r.json());
+  },
+  updateAssignment: (id: string, data: any) => apiRequest(`/assignments/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteAssignment: (id: string) => apiRequest(`/assignments/${id}/`, { method: 'DELETE' }),
+  getSubmissions: (assignmentId: string) => apiRequest(`/assignments/${assignmentId}/submissions/`),
+  submitAssignment: (data: FormData) => {
+    const token = getAuthToken();
+    return fetch(`${API_BASE_URL}/submissions/`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: data,
+    }).then(r => r.json());
+  },
+  gradeSubmission: (submissionId: string, score: number, feedback: string) =>
+    apiRequest(`/submissions/${submissionId}/grade/`, { method: 'POST', body: JSON.stringify({ score, feedback }) }),
+  downloadSubmission: async (submissionId: string) => {
+    const token = getAuthToken();
+    const r = await fetch(`${API_BASE_URL}/submissions/${submissionId}/download/`, { headers: { Authorization: `Bearer ${token}` } });
+    return r.blob();
+  },
+};
+
+// Gradebook API
+export const gradebookAPI = {
+  getCategories: (roomId: string) => apiRequest(`/grade-categories/?room=${roomId}`),
+  createCategory: (data: any) => apiRequest('/grade-categories/', { method: 'POST', body: JSON.stringify(data) }),
+  deleteCategory: (id: string) => apiRequest(`/grade-categories/${id}/`, { method: 'DELETE' }),
+  getGrades: (params: { room?: string; student?: string }) => {
+    const q = new URLSearchParams(params as any).toString();
+    return apiRequest(`/grades/?${q}`);
+  },
+  createGrade: (data: any) => apiRequest('/grades/', { method: 'POST', body: JSON.stringify(data) }),
+  updateGrade: (id: string, data: any) => apiRequest(`/grades/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteGrade: (id: string) => apiRequest(`/grades/${id}/`, { method: 'DELETE' }),
+  getSummary: (roomId: string) => apiRequest(`/grades/summary/?room=${roomId}`),
+};
+
+// Attendance API
+export const attendanceAPI = {
+  getSessions: (roomId: string) => apiRequest(`/attendance/sessions/?room=${roomId}`),
+  createSession: (data: any) => apiRequest('/attendance/sessions/', { method: 'POST', body: JSON.stringify(data) }),
+  markAttendance: (sessionId: string, records: any[]) =>
+    apiRequest(`/attendance/sessions/${sessionId}/mark/`, { method: 'POST', body: JSON.stringify({ records }) }),
+  getStudentSummary: (roomId: string, studentId?: string) => {
+    const q = studentId ? `&student=${studentId}` : '';
+    return apiRequest(`/attendance/sessions/student-summary/?room=${roomId}${q}`);
+  },
+  getRecords: (sessionId: string) => apiRequest(`/attendance/records/?session=${sessionId}`),
+};
+
+// Timetable API
+export const timetableAPI = {
+  getSlots: (params?: { room?: string; day?: number }) => {
+    const q = new URLSearchParams(params as any).toString();
+    return apiRequest(`/timetable/?${q}`);
+  },
+  createSlot: (data: any) => apiRequest('/timetable/', { method: 'POST', body: JSON.stringify(data) }),
+  updateSlot: (id: string, data: any) => apiRequest(`/timetable/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteSlot: (id: string) => apiRequest(`/timetable/${id}/`, { method: 'DELETE' }),
+};
+
+// Messaging API
+export const messagingAPI = {
+  getMessages: (box: 'inbox' | 'sent' = 'inbox') => apiRequest(`/messages/?box=${box}`),
+  getMessage: (id: string) => apiRequest(`/messages/${id}/`),
+  sendMessage: (data: FormData) => {
+    const token = getAuthToken();
+    return fetch(`${API_BASE_URL}/messages/`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: data,
+    }).then(r => r.json());
+  },
+  markRead: (id: string) => apiRequest(`/messages/${id}/read/`, { method: 'POST' }),
+  getThread: (id: string) => apiRequest(`/messages/${id}/thread/`),
+  getUnreadCount: () => apiRequest('/messages/unread-count/'),
+  deleteMessage: (id: string) => apiRequest(`/messages/${id}/`, { method: 'DELETE' }),
+};
+
+// Announcements API
+export const announcementsAPI = {
+  getAnnouncements: (params?: { room?: string }) => {
+    const q = params?.room ? `?room=${params.room}` : '';
+    return apiRequest(`/announcements/${q}`);
+  },
+  createAnnouncement: (data: any) => apiRequest('/announcements/', { method: 'POST', body: JSON.stringify(data) }),
+  updateAnnouncement: (id: string, data: any) => apiRequest(`/announcements/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteAnnouncement: (id: string) => apiRequest(`/announcements/${id}/`, { method: 'DELETE' }),
+};
+
+// Academic Calendar API
+export const calendarAPI = {
+  getEntries: (type?: string) => apiRequest(`/calendar/${type ? `?type=${type}` : ''}`),
+  createEntry: (data: any) => apiRequest('/calendar/', { method: 'POST', body: JSON.stringify(data) }),
+  updateEntry: (id: string, data: any) => apiRequest(`/calendar/${id}/`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteEntry: (id: string) => apiRequest(`/calendar/${id}/`, { method: 'DELETE' }),
+};
+
+// Auth extras
+export const authExtrasAPI = {
+  forgotPassword: (email: string) =>
+    apiRequest('/auth/forgot-password/', { method: 'POST', body: JSON.stringify({ email, frontend_url: window.location.origin }) }),
+  resetPassword: (token: string, password: string) =>
+    apiRequest('/auth/reset-password/', { method: 'POST', body: JSON.stringify({ token, password }) }),
+  bulkImport: (file: File) => {
+    const token = getAuthToken();
+    const fd = new FormData();
+    fd.append('file', file);
+    return fetch(`${API_BASE_URL}/users/bulk-import/`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd,
+    }).then(r => r.json());
+  },
+};

@@ -91,6 +91,9 @@ const Login: React.FC = () => {
               <Button type="submit" className="w-full bg-primary hover:bg-primary-dark" disabled={isLoading}>
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
+              <div className="text-right">
+                <Link to="/forgot-password" className="text-sm text-primary hover:underline">Forgot password?</Link>
+              </div>
               
               <div className="text-center text-sm text-gray-500 mt-4">
                 <p>Demo accounts:</p>

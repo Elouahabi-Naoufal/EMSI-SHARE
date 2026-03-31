@@ -6,9 +6,10 @@ from .serializers import UserSerializer, RegisterSerializer, AdminUserCreateSeri
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
-import os
+from django.core.mail import send_mail
 from django.http import HttpResponse
-import base64
+import base64, csv, io
+from .models import PasswordResetToken, EmailVerificationToken
 from platform_settings.models import PlatformSettings
 
 User = get_user_model()
@@ -56,11 +57,10 @@ class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def get_queryset(self):
-        # Only allow teachers, admins, and administration to see user lists
         user = self.request.user
-        if user.role in ['teacher', 'admin', 'administration']:
+        if user.role in User.PRIVILEGED_ROLES:
             return User.objects.all().order_by('date_joined')
         return User.objects.filter(id=user.id)
 
@@ -68,50 +68,42 @@ class UserListView(generics.ListAPIView):
 class AdminUserCreateView(generics.CreateAPIView):
     serializer_class = AdminUserCreateSerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def post(self, request, *args, **kwargs):
-        # Only allow admins and administration to create users
-        if request.user.role not in ['admin', 'administration']:
+        if request.user.role not in User.ADMIN_ROLES:
             return Response({'detail': 'You do not have permission to create users.'},
-                           status=status.HTTP_403_FORBIDDEN)
-        
+                            status=status.HTTP_403_FORBIDDEN)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        
         return Response({
             'id': user.id,
             'username': user.username,
             'email': user.email,
             'first_name': user.first_name,
             'last_name': user.last_name,
-            'role': user.role
+            'role': user.role,
+            'staff_title': user.staff_title,
+            'department': user.department,
         }, status=status.HTTP_201_CREATED)
 
 
 class UserDeleteView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def delete(self, request, user_id):
-        # Only allow admins and administration to delete users
-        if request.user.role not in ['admin', 'administration']:
-            return Response({'detail': 'You do not have permission to delete users.'}, 
+        if request.user.role not in User.ADMIN_ROLES:
+            return Response({'detail': 'You do not have permission to delete users.'},
                             status=status.HTTP_403_FORBIDDEN)
-        
         try:
             user_to_delete = User.objects.get(id=user_id)
-            
-            # Prevent self-deletion
             if user_to_delete.id == request.user.id:
-                return Response({'detail': 'You cannot delete your own account.'}, 
+                return Response({'detail': 'You cannot delete your own account.'},
                                 status=status.HTTP_400_BAD_REQUEST)
-                
             user_to_delete.delete()
-            return Response({'detail': 'User deleted successfully.'}, 
-                            status=status.HTTP_204_NO_CONTENT)
+            return Response({'detail': 'User deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
         except User.DoesNotExist:
-            return Response({'detail': 'User not found.'}, 
-                            status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -207,56 +199,128 @@ class UserProfilePictureView(views.APIView):
 class AdminUserUpdateView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
-    
+
     def post(self, request, user_id):
-        # Only allow administration to update users
-        if request.user.role != 'administration':
-            return Response({'detail': 'Only administration can update user profiles.'}, 
-                           status=status.HTTP_403_FORBIDDEN)
-        
+        if request.user.role not in User.ADMIN_ROLES:
+            return Response({'detail': 'Only admin/administration can update user profiles.'},
+                            status=status.HTTP_403_FORBIDDEN)
         try:
-            user_to_update = User.objects.get(id=user_id)
-            
-            # Update basic fields
-            if 'username' in request.data:
-                user_to_update.username = request.data['username']
-            if 'email' in request.data:
-                user_to_update.email = request.data['email']
-            if 'first_name' in request.data:
-                user_to_update.first_name = request.data['first_name']
-            if 'last_name' in request.data:
-                user_to_update.last_name = request.data['last_name']
-            if 'role' in request.data:
-                user_to_update.role = request.data['role']
-            if 'password' in request.data and request.data['password']:
-                user_to_update.password = make_password(request.data['password'])
-            
-            # Handle profile picture
-            if 'profile_picture' in request.data and request.data['profile_picture']:
-                # Handle base64 encoded image
-                if isinstance(request.data['profile_picture'], str) and request.data['profile_picture'].startswith('data:'):
-                    # Extract the base64 part
-                    format, imgstr = request.data['profile_picture'].split(';base64,')
-                    # Decode and save
-                    user_to_update.profile_picture = base64.b64decode(imgstr)
-            
-            # Handle file upload
-            profile_pic = request.FILES.get('profile_picture')
-            if profile_pic:
-                user_to_update.profile_picture = profile_pic.read()
-            
-            user_to_update.save()
-            
-            # Return updated user data
+            u = User.objects.get(id=user_id)
+            for field in ['username', 'email', 'first_name', 'last_name', 'role', 'staff_title', 'department']:
+                if field in request.data:
+                    setattr(u, field, request.data[field])
+            if request.data.get('password'):
+                u.password = make_password(request.data['password'])
+            pic = request.data.get('profile_picture')
+            if pic and isinstance(pic, str) and pic.startswith('data:'):
+                _, imgstr = pic.split(';base64,')
+                u.profile_picture = base64.b64decode(imgstr)
+            if request.FILES.get('profile_picture'):
+                u.profile_picture = request.FILES['profile_picture'].read()
+            u.save()
             return Response({
-                'id': user_to_update.id,
-                'username': user_to_update.username,
-                'email': user_to_update.email,
-                'first_name': user_to_update.first_name,
-                'last_name': user_to_update.last_name,
-                'role': user_to_update.role,
-                'profile_picture_data': f'data:image/png;base64,{base64.b64encode(user_to_update.profile_picture).decode("utf-8")}' if user_to_update.profile_picture else None
+                'id': u.id, 'username': u.username, 'email': u.email,
+                'first_name': u.first_name, 'last_name': u.last_name,
+                'role': u.role, 'staff_title': u.staff_title, 'department': u.department,
+                'profile_picture_data': f'data:image/png;base64,{base64.b64encode(u.profile_picture).decode()}' if u.profile_picture else None
             })
-            
         except User.DoesNotExist:
             return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class ForgotPasswordView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip()
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'detail': 'If that email exists, a reset link has been sent.'})
+
+        token = PasswordResetToken.objects.create(user=user)
+        reset_url = f"{request.data.get('frontend_url', 'http://localhost:5173')}/reset-password?token={token.token}"
+
+        try:
+            send_mail(
+                subject='Password Reset Request',
+                message=f'Click the link to reset your password (expires in 1 hour):\n\n{reset_url}',
+                from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@platform.com'),
+                recipient_list=[email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
+
+        return Response({'detail': 'If that email exists, a reset link has been sent.'})
+
+
+class ResetPasswordView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        token_str = request.data.get('token', '')
+        new_password = request.data.get('password', '')
+
+        if not token_str or not new_password:
+            return Response({'detail': 'Token and password are required.'}, status=400)
+
+        try:
+            token = PasswordResetToken.objects.get(token=token_str, used=False)
+        except PasswordResetToken.DoesNotExist:
+            return Response({'detail': 'Invalid or expired token.'}, status=400)
+
+        if token.is_expired:
+            return Response({'detail': 'Token has expired.'}, status=400)
+
+        token.user.password = make_password(new_password)
+        token.user.save()
+        token.used = True
+        token.save()
+        return Response({'detail': 'Password reset successfully.'})
+
+
+class BulkUserImportView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        if request.user.role not in User.ADMIN_ROLES:
+            return Response({'detail': 'Permission denied.'}, status=403)
+
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'detail': 'CSV file required.'}, status=400)
+
+        decoded = file.read().decode('utf-8')
+        reader = csv.DictReader(io.StringIO(decoded))
+        created, skipped, errors = [], [], []
+
+        for i, row in enumerate(reader, start=2):
+            email = row.get('email', '').strip()
+            first_name = row.get('first_name', '').strip()
+            last_name = row.get('last_name', '').strip()
+            role = row.get('role', 'student').strip()
+            password = row.get('password', '').strip() or User.objects.make_random_password()
+
+            if not email:
+                errors.append({'row': i, 'error': 'Missing email'})
+                continue
+            if role not in [r[0] for r in User.ROLE_CHOICES]:
+                errors.append({'row': i, 'error': f'Invalid role: {role}'})
+                continue
+            if User.objects.filter(email=email).exists():
+                skipped.append(email)
+                continue
+            try:
+                import secrets as _s
+                user = User.objects.create_user(
+                    username=f"{email.split('@')[0]}_{_s.token_hex(3)}",
+                    email=email, password=password,
+                    first_name=first_name, last_name=last_name, role=role,
+                )
+                created.append(email)
+            except Exception as e:
+                errors.append({'row': i, 'error': str(e)})
+
+        return Response({'created': len(created), 'skipped': len(skipped), 'errors': errors,
+                         'created_emails': created, 'skipped_emails': skipped})

@@ -14,7 +14,13 @@ import {
   Settings,
   DoorOpen,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ClipboardList,
+  BookMarked,
+  UserCheck,
+  Clock,
+  Mail,
+  Megaphone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -57,8 +63,15 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleSidebar }) => {
     ...(user?.role === 'student' ? [
       { name: 'My Rooms', href: '/student-rooms', icon: DoorOpen },
     ] : []),
+    { name: 'Assignments', href: '/assignments', icon: ClipboardList },
+    { name: 'Gradebook', href: '/gradebook', icon: BookMarked },
+    { name: 'Attendance', href: '/attendance', icon: UserCheck },
+    { name: 'Timetable', href: '/timetable', icon: Clock },
     { name: 'Forum', href: '/forum', icon: MessageSquare },
     { name: 'Events', href: '/events', icon: Calendar },
+    { name: 'Announcements', href: '/announcements', icon: Megaphone },
+    { name: 'Academic Calendar', href: '/calendar', icon: BookOpen },
+    { name: 'Messages', href: '/messages', icon: Mail },
     ...(user?.role === 'admin' || user?.role === 'administration' ? [
       { name: 'Users', href: '/users', icon: Users },
       { name: 'Settings', href: '/settings', icon: Settings },

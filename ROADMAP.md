@@ -373,3 +373,31 @@ Events have `meeting_link` but no real integration.
 - **Frontend:** React 18 + TypeScript, Vite, Tailwind, Radix UI, TanStack Query
 - **Backend:** Django 6 + DRF, PostgreSQL, JWT (SimpleJWT)
 - **File storage:** Binary fields in PostgreSQL (no filesystem)
+
+---
+
+## Staff Roles System (Implemented)
+
+The platform supports a full organisational staff structure beyond just `teacher`.
+
+### Roles
+
+| Role | Description |
+|---|---|
+| `student` | Default self-registration role |
+| `teacher` | Creates rooms, quizzes, manages resources |
+| `librarian` | Manages library resources and materials |
+| `counselor` | Student guidance and support |
+| `coordinator` | Programme/department coordination |
+| `staff` | General staff (administrative support, IT, etc.) |
+| `admin` | Platform administrator |
+| `administration` | Institutional management, full user CRUD |
+
+### Staff fields on User model
+- `staff_title` — free text, e.g. "Head of Mathematics", "IT Support"
+- `department` — e.g. "Science", "Student Affairs"
+
+### Permission groups
+- `STAFF_ROLES` — teacher, librarian, counselor, coordinator, staff
+- `ADMIN_ROLES` — admin, administration
+- `PRIVILEGED_ROLES` — all of the above (can see user lists, etc.)
