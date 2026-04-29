@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNotificationSocket } from '@/hooks/useNotificationSocket';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -44,15 +45,14 @@ const NotificationDropdown: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const handleNewNotification = useCallback((data: Notification) => {
+    setNotifications(prev => [data, ...prev.filter(n => n.id !== data.id)]);
+  }, []);
+
+  useNotificationSocket(handleNewNotification);
+
   useEffect(() => {
-    if (user) {
-      fetchNotifications();
-      
-      // Set up polling for notifications every 5 seconds for more frequent updates
-      const intervalId = setInterval(fetchNotifications, 5000);
-      
-      return () => clearInterval(intervalId);
-    }
+    if (user) fetchNotifications();
   }, [user]);
 
   const fetchNotifications = async () => {

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNotificationSocket } from '@/hooks/useNotificationSocket';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,13 +38,14 @@ const Notifications: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const handleNewNotification = useCallback((data: any) => {
+    setNotifications(prev => [data, ...prev.filter(n => n.id !== data.id)]);
+  }, []);
+
+  useNotificationSocket(handleNewNotification);
+
   useEffect(() => {
     fetchNotifications();
-    
-    // Set up polling for notifications every 5 seconds
-    const intervalId = setInterval(fetchNotifications, 5000);
-    
-    return () => clearInterval(intervalId);
   }, []);
 
   const fetchNotifications = async () => {
