@@ -1,30 +1,59 @@
 from rest_framework import serializers
-from .models import Message
-import base64
+from .models import DirectConversation, ChatMessage
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
-class MessageSerializer(serializers.ModelSerializer):
-    sender_name = serializers.SerializerMethodField()
-    recipient_name = serializers.SerializerMethodField()
-    has_attachment = serializers.SerializerMethodField()
-    reply_count = serializers.SerializerMethodField()
+class UserMiniSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
 
     class Meta:
-        model = Message
-        fields = ['id', 'sender', 'sender_name', 'recipient', 'recipient_name',
-                  'subject', 'body', 'is_read', 'read_at', 'parent',
-                  'has_attachment', 'attachment_name', 'attachment_type',
-                  'reply_count', 'created_at']
-        read_only_fields = ['sender', 'is_read', 'read_at', 'created_at']
+        model = User
+        fields = ['id', 'full_name', 'email']
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip() or obj.email
+
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    sender_name = serializers.SerializerMethodField()
+    has_media = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ChatMessage
+        fields = ['id', 'conversation', 'sender', 'sender_name', 'message_type',
+                  'content', 'media_name', 'media_mime', 'gif_url',
+                  'has_media', 'is_read', 'created_at']
+        read_only_fields = ['sender', 'created_at', 'is_read']
 
     def get_sender_name(self, obj):
         return f"{obj.sender.first_name} {obj.sender.last_name}".strip() or obj.sender.email
 
-    def get_recipient_name(self, obj):
-        return f"{obj.recipient.first_name} {obj.recipient.last_name}".strip() or obj.recipient.email
+    def get_has_media(self, obj):
+        return bool(obj.media_data)
 
-    def get_has_attachment(self, obj):
-        return bool(obj.attachment_data)
 
-    def get_reply_count(self, obj):
-        return obj.replies.count()
+class ConversationSerializer(serializers.ModelSerializer):
+    other_user = serializers.SerializerMethodField()
+    last_message = serializers.SerializerMethodField()
+    unread_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = DirectConversation
+        fields = ['id', 'other_user', 'last_message', 'unread_count', 'updated_at']
+
+    def get_other_user(self, obj):
+        request = self.context.get('request')
+        other = obj.participants.exclude(id=request.user.id).first()
+        return UserMiniSerializer(other).data if other else None
+
+    def get_last_message(self, obj):
+        msg = obj.messages.last()
+        if not msg:
+            return None
+        return {'content': msg.content or f'[{msg.message_type}]', 'created_at': msg.created_at.isoformat(), 'sender_id': msg.sender_id}
+
+    def get_unread_count(self, obj):
+        request = self.context.get('request')
+        return obj.messages.filter(is_read=False).exclude(sender=request.user).count()

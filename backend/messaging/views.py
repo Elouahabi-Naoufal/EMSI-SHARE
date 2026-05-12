@@ -1,72 +1,101 @@
+import json
+import base64
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from django.utils import timezone
+from rest_framework.views import APIView
 from django.http import HttpResponse
-from django.db.models import Q
-from .models import Message
-from .serializers import MessageSerializer
+from django.contrib.auth import get_user_model
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from .models import DirectConversation, ChatMessage
+from .serializers import ConversationSerializer, ChatMessageSerializer
+
+User = get_user_model()
 
 
-class MessageViewSet(viewsets.ModelViewSet):
-    serializer_class = MessageSerializer
+def push_message_ws(recipient_id, data):
+    channel_layer = get_channel_layer()
+    if channel_layer:
+        async_to_sync(channel_layer.group_send)(
+            f"chat_{recipient_id}",
+            {"type": "chat_message", "data": data}
+        )
+
+
+class ConversationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ConversationSerializer
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_queryset(self):
-        user = self.request.user
-        box = self.request.query_params.get('box', 'inbox')
-        qs = Message.objects.filter(parent=None)
-        if box == 'inbox':
-            qs = qs.filter(recipient=user, is_deleted_by_recipient=False)
-        elif box == 'sent':
-            qs = qs.filter(sender=user, is_deleted_by_sender=False)
-        else:
-            qs = qs.filter(Q(sender=user) | Q(recipient=user))
-        return qs
+        return DirectConversation.objects.filter(participants=self.request.user)
 
-    def perform_create(self, serializer):
-        attachment_data = attachment_name = attachment_type = None
-        if 'attachment' in self.request.FILES:
-            f = self.request.FILES['attachment']
-            attachment_data = f.read()
-            attachment_name = f.name
-            attachment_type = f.content_type
-        msg = serializer.save(
-            sender=self.request.user,
-            attachment_data=attachment_data,
-            attachment_name=attachment_name,
-            attachment_type=attachment_type,
+    @action(detail=False, methods=['post'], url_path='start')
+    def start(self, request):
+        other_id = request.data.get('user_id')
+        try:
+            other = User.objects.get(id=other_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+
+        conv = DirectConversation.objects.filter(participants=request.user).filter(participants=other).first()
+        if not conv:
+            conv = DirectConversation.objects.create()
+            conv.participants.add(request.user, other)
+
+        return Response(ConversationSerializer(conv, context={'request': request}).data)
+
+    @action(detail=True, methods=['get'], url_path='messages')
+    def messages(self, request, pk=None):
+        conv = self.get_object()
+        msgs = conv.messages.all()
+        # Mark all as read
+        msgs.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
+        return Response(ChatMessageSerializer(msgs, many=True).data)
+
+    @action(detail=True, methods=['post'], url_path='send')
+    def send(self, request, pk=None):
+        conv = self.get_object()
+        msg_type = request.data.get('message_type', 'text')
+        content = request.data.get('content', '')
+        gif_url = request.data.get('gif_url')
+
+        media_data = media_name = media_mime = None
+        if 'media' in request.FILES:
+            f = request.FILES['media']
+            media_data = f.read()
+            media_name = f.name
+            media_mime = f.content_type
+        elif request.data.get('media_base64'):
+            media_data = base64.b64decode(request.data['media_base64'])
+            media_name = request.data.get('media_name', 'file')
+            media_mime = request.data.get('media_mime', 'application/octet-stream')
+
+        msg = ChatMessage.objects.create(
+            conversation=conv,
+            sender=request.user,
+            message_type=msg_type,
+            content=content,
+            media_data=media_data,
+            media_name=media_name,
+            media_mime=media_mime,
+            gif_url=gif_url,
         )
-        from audit_logs.utils import log_action
-        log_action(self.request.user, 'message_sent', 'Message', msg.id, {'to': msg.recipient.email, 'subject': msg.subject or ''}, self.request)
+        conv.save()  # update updated_at
 
-    @action(detail=True, methods=['post'], url_path='read')
-    def mark_read(self, request, pk=None):
-        msg = self.get_object()
-        if msg.recipient == request.user and not msg.is_read:
-            msg.is_read = True
-            msg.read_at = timezone.now()
-            msg.save()
-        return Response({'detail': 'marked as read'})
+        serialized = ChatMessageSerializer(msg).data
 
-    @action(detail=True, methods=['get'], url_path='attachment')
-    def download_attachment(self, request, pk=None):
-        msg = self.get_object()
-        if not msg.attachment_data:
-            return Response({'error': 'No attachment'}, status=404)
-        response = HttpResponse(msg.attachment_data, content_type=msg.attachment_type or 'application/octet-stream')
-        response['Content-Disposition'] = f'attachment; filename="{msg.attachment_name}"'
+        # Push to all participants except sender
+        for participant in conv.participants.exclude(id=request.user.id):
+            push_message_ws(participant.id, {**serialized, 'conversation_id': conv.id})
+
+        return Response(serialized, status=201)
+
+    @action(detail=True, methods=['get'], url_path='media/(?P<msg_id>[0-9]+)')
+    def media(self, request, pk=None, msg_id=None):
+        msg = ChatMessage.objects.get(id=msg_id, conversation_id=pk)
+        if not msg.media_data:
+            return Response({'error': 'No media'}, status=404)
+        response = HttpResponse(bytes(msg.media_data), content_type=msg.media_mime or 'application/octet-stream')
+        response['Content-Disposition'] = f'inline; filename="{msg.media_name}"'
         return response
-
-    @action(detail=True, methods=['get'], url_path='thread')
-    def thread(self, request, pk=None):
-        msg = self.get_object()
-        replies = msg.replies.all()
-        return Response(MessageSerializer(replies, many=True).data)
-
-    @action(detail=False, methods=['get'], url_path='unread-count')
-    def unread_count(self, request):
-        count = Message.objects.filter(recipient=request.user, is_read=False, is_deleted_by_recipient=False).count()
-        return Response({'count': count})

@@ -37,7 +37,7 @@ urlpatterns = [
     path('api/', include('gradebook.urls')),
     path('api/', include('attendance.urls')),
     path('api/', include('timetable.urls')),
-    path('api/', include('messaging.urls')),
+    path('api/', include('messaging.urls')),  # conversations
     path('api/', include('announcements.urls')),
     path('api/', include('calendar_app.urls')),
     path('api/', include('certificates.urls')),

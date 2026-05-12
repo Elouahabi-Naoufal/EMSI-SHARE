@@ -1450,18 +1450,22 @@ export const timetableAPI = {
 
 // Messaging API
 export const messagingAPI = {
-  getMessages: (box: 'inbox' | 'sent' = 'inbox') => apiRequest(`/messages/?box=${box}`),
-  getMessage: (id: string) => apiRequest(`/messages/${id}/`),
-  sendMessage: (data: FormData) => {
+  getConversations: () => apiRequest('/conversations/'),
+  startConversation: (userId: number) => apiRequest('/conversations/start/', { method: 'POST', body: JSON.stringify({ user_id: userId }) }),
+  getMessages: (convId: number) => apiRequest(`/conversations/${convId}/messages/`),
+  getMediaUrl: (convId: number, msgId: number) => `${API_BASE_URL}/conversations/${convId}/media/${msgId}/`,
+  sendMessage: async (convId: number, data: { message_type: string; content?: string; gif_url?: string; media?: File; media_base64?: string; media_name?: string; media_mime?: string }) => {
     const token = getAuthToken();
-    return fetch(`${API_BASE_URL}/messages/`, {
-      method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: data,
-    }).then(r => r.json());
+    if (data.media) {
+      const fd = new FormData();
+      fd.append('message_type', data.message_type);
+      if (data.content) fd.append('content', data.content);
+      fd.append('media', data.media);
+      const r = await fetch(`${API_BASE_URL}/conversations/${convId}/send/`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd });
+      return r.json();
+    }
+    return apiRequest(`/conversations/${convId}/send/`, { method: 'POST', body: JSON.stringify(data) });
   },
-  markRead: (id: string) => apiRequest(`/messages/${id}/read/`, { method: 'POST' }),
-  getThread: (id: string) => apiRequest(`/messages/${id}/thread/`),
-  getUnreadCount: () => apiRequest('/messages/unread-count/'),
-  deleteMessage: (id: string) => apiRequest(`/messages/${id}/`, { method: 'DELETE' }),
 };
 
 // Announcements API

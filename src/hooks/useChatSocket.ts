@@ -10,21 +10,28 @@ const getCookie = (name: string) =>
     return parts[0] === name ? decodeURIComponent(parts[1]) : r;
   }, '');
 
-export function useNotificationSocket(onMessage: (data: any) => void) {
+export function useChatSocket(onMessage: (data: any) => void) {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Always call the latest onMessage without reconnecting
   const onMessageRef = useRef(onMessage);
   useEffect(() => { onMessageRef.current = onMessage; }, [onMessage]);
 
   const connect = useCallback(() => {
     const token = getCookie('emsi_access');
     if (!token) return;
-    const ws = new WebSocket(`${WS_BASE}/ws/notifications/?token=${token}`);
+    const ws = new WebSocket(`${WS_BASE}/ws/chat/?token=${token}`);
     wsRef.current = ws;
     ws.onmessage = (e) => onMessageRef.current(JSON.parse(e.data));
-    ws.onclose = () => { reconnectTimer.current = setTimeout(connect, 5000); };
+    ws.onclose = () => { reconnectTimer.current = setTimeout(connect, 4000); };
     ws.onerror = () => ws.close();
-  }, []); // connect once
+  }, []); // no deps — connect only once
+
+  const sendTyping = useCallback((recipientId: number, isTyping: boolean) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'typing', recipient_id: recipientId, is_typing: isTyping }));
+    }
+  }, []);
 
   useEffect(() => {
     connect();
@@ -33,4 +40,6 @@ export function useNotificationSocket(onMessage: (data: any) => void) {
       if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
     };
   }, []);
+
+  return { sendTyping };
 }
