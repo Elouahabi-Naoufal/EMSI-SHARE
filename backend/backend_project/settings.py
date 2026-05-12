@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 from datetime import timedelta
+import json
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,10 +27,9 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 524288000  # 500MB
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=ug_u9e^z_)!4=!g%^=)@4(f=u=^3o3$r!$i#l)a9=9_j$5=g+'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-=ug_u9e^z_)!4=!g%^=)@4(f=u=^3o3$r!$i#l)a9=9_j$5=g+')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 
 
@@ -101,7 +101,7 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [('127.0.0.1', 6379)],
+            'hosts': [(os.environ.get('REDIS_HOST', '127.0.0.1'), int(os.environ.get('REDIS_PORT', 6379)))],
         },
     },
 }
@@ -115,18 +115,17 @@ ALLOWED_HOSTS = ['*']
 _db_config_path = BASE_DIR / 'db_config.json'
 _db_config = {}
 if _db_config_path.exists():
-    import json
     with open(_db_config_path) as _f:
         _db_config = json.load(_f)
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': _db_config.get('db_name') or 'emsi_share_db',
-        'USER': _db_config.get('db_user') or 'postgres',
-        'PASSWORD': _db_config.get('db_password') or '0000',
-        'HOST': _db_config.get('db_host') or 'localhost',
-        'PORT': _db_config.get('db_port') or '5432',
+        'NAME': os.environ.get('DB_NAME') or _db_config.get('db_name') or 'emsi_share_db',
+        'USER': os.environ.get('DB_USER') or _db_config.get('db_user') or 'postgres',
+        'PASSWORD': os.environ.get('DB_PASSWORD') or _db_config.get('db_password') or '0000',
+        'HOST': os.environ.get('DB_HOST') or _db_config.get('db_host') or 'localhost',
+        'PORT': os.environ.get('DB_PORT') or _db_config.get('db_port') or '5432',
     }
 }
 
